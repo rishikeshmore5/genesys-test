@@ -18,21 +18,26 @@
             background: #f5f5f5;
         }
 
+        h1 {
+            color: #333;
+        }
+
         .card {
-            width: 420px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background: white;
+            border: 1px solid #e0e0e0;
             padding: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            width: 420px;
+            border-radius: 8px;
+            background-color: #ffffff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-top: 20px;
         }
 
         .card h3 {
             margin-top: 0;
         }
 
-        .row {
-            margin: 12px 0;
+        .card p {
+            margin: 10px 0;
             font-size: 14px;
         }
 
@@ -43,55 +48,63 @@
 
         .value {
             color: #0066cc;
-            font-weight: bold;
+            font-weight: 600;
             word-break: break-all;
         }
 
-        .connected {
-            color: green;
+        .active {
+            color: green !important;
         }
 
-        .disconnected {
-            color: red;
+        .ended {
+            color: red !important;
         }
 
         .match {
-            color: green;
+            color: green !important;
             font-weight: bold;
         }
 
         .mismatch {
-            color: red;
+            color: red !important;
             font-weight: bold;
         }
 
         .beep {
-            color: green;
-            font-size: 18px;
+            color: green !important;
             font-weight: bold;
         }
 
-        .log {
+        .waiting {
+            color: #777 !important;
+        }
+
+        .audio-button {
+            margin-top: 15px;
+            padding: 10px 18px;
+            font-size: 14px;
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .audio-button:hover {
+            background-color: #004999;
+        }
+
+        .log-box {
             margin-top: 20px;
             width: 420px;
-            height: 180px;
-            overflow-y: auto;
             background: #111;
             color: #00ff00;
             padding: 15px;
             border-radius: 8px;
             font-family: monospace;
             font-size: 12px;
-        }
-
-        .enable-audio {
-            margin-top: 15px;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 5px;
-            background: #0066cc;
-            color: white;
-            cursor: pointer;
+            height: 180px;
+            overflow-y: auto;
         }
 
     </style>
@@ -101,94 +114,131 @@
 
 <body>
 
+    <h1>
+        Genesys Call Monitor
+    </h1>
+
+    <p>
+        Customer Disconnect Beep Monitor
+    </p>
+
+
+    <!-- =====================================================
+         CALL DETAILS
+    ====================================================== -->
+
     <div class="card">
 
-        <h3>Live Call Monitor</h3>
+        <h3>
+            Live Call Details
+        </h3>
 
-        <div class="row">
+
+        <p>
+
             <span class="label">
                 Call State:
             </span>
 
-            <span id="call-state"
-                  class="value">
+            <span
+                id="call-state"
+                class="value waiting">
+
                 Waiting
+
             </span>
-        </div>
+
+        </p>
 
 
-        <div class="row">
+        <p>
 
             <span class="label">
                 Conversation ID:
             </span>
 
-            <span id="conversation-id"
-                  class="value">
+            <span
+                id="conversation-id"
+                class="value">
+
                 Waiting...
+
             </span>
 
-        </div>
+        </p>
 
 
-        <div class="row">
+        <p>
 
             <span class="label">
                 Lambda Status:
             </span>
 
-            <span id="lambda-status"
-                  class="value">
+            <span
+                id="lambda-status"
+                class="value waiting">
+
                 Not Connected
+
             </span>
 
-        </div>
+        </p>
 
 
-        <div class="row">
+        <p>
 
             <span class="label">
                 Lambda Conversation ID:
             </span>
 
-            <span id="lambda-conversation-id"
-                  class="value">
+            <span
+                id="lambda-conversation-id"
+                class="value">
+
                 -
+
             </span>
 
-        </div>
+        </p>
 
 
-        <div class="row">
+        <p>
 
             <span class="label">
                 ID Comparison:
             </span>
 
-            <span id="comparison"
-                  class="value">
+            <span
+                id="comparison-status"
+                class="value waiting">
+
                 Waiting
+
             </span>
 
-        </div>
+        </p>
 
 
-        <div class="row">
+        <p>
 
             <span class="label">
                 Beep Status:
             </span>
 
-            <span id="beep-status"
-                  class="value">
+            <span
+                id="beep-status"
+                class="value waiting">
+
                 Not Played
+
             </span>
 
-        </div>
+        </p>
 
 
         <button
-            class="enable-audio"
+            id="audio-button"
+            class="audio-button"
             onclick="enableAudio()">
 
             Enable Audio
@@ -198,9 +248,13 @@
     </div>
 
 
+    <!-- =====================================================
+         DEBUG LOG
+    ====================================================== -->
+
     <div
-        id="log"
-        class="log">
+        id="debug-log"
+        class="log-box">
 
         Starting monitor...
 
@@ -218,91 +272,152 @@ const LAMBDA_URL =
     "https://v4gejir3ejrwwlnyibcx4a7uiq0kljsw.lambda-url.us-east-1.on.aws/";
 
 
-/*
- * IMPORTANT
- *
- * This value should be populated from the
- * Genesys Script input variable.
- *
- * If your Script HTML/page supports variable
- * interpolation, replace the value below with:
- *
- * {{ConversationId}}
- *
- */
+/* =========================================================
+   GLOBAL VARIABLES
+========================================================= */
 
-let currentConversationId = "{{ConversationId}}";
-
+let currentConversationId = null;
 
 let lastBeepedConversationId = null;
 
 let audioContext = null;
 
+let pollingInProgress = false;
+
 
 /* =========================================================
-   LOGGING
+   DEBUG LOGGER
 ========================================================= */
 
-function log(message) {
+function debugLog(message) {
 
     console.log(message);
 
-    const logBox =
-        document.getElementById("log");
+    const log =
+        document.getElementById("debug-log");
 
     const time =
         new Date().toLocaleTimeString();
 
-    logBox.innerHTML +=
+    log.innerHTML +=
         `<div>[${time}] ${message}</div>`;
 
-    logBox.scrollTop =
-        logBox.scrollHeight;
+    log.scrollTop =
+        log.scrollHeight;
+
 }
 
 
 /* =========================================================
-   DISPLAY CONVERSATION ID
+   GET CONVERSATION ID FROM URL
+========================================================= */
+
+function getConversationIdFromURL() {
+
+    try {
+
+        const urlParams =
+            new URLSearchParams(
+                window.location.search
+            );
+
+
+        const conversationId =
+            urlParams.get("conversationId");
+
+
+        if (!conversationId) {
+
+            debugLog(
+                "❌ conversationId parameter not found in URL"
+            );
+
+            return null;
+
+        }
+
+
+        /*
+         * Decode URL value
+         */
+
+        const decodedId =
+            decodeURIComponent(
+                conversationId
+            ).trim();
+
+
+        debugLog(
+            "Conversation ID received from URL: " +
+            decodedId
+        );
+
+
+        return decodedId;
+
+    }
+
+    catch (error) {
+
+        debugLog(
+            "Error reading conversation ID: " +
+            error.message
+        );
+
+        return null;
+
+    }
+
+}
+
+
+/* =========================================================
+   INITIALIZE CONVERSATION
 ========================================================= */
 
 function initializeConversation() {
 
-    /*
-     * Remove whitespace
-     */
-
     currentConversationId =
-        String(currentConversationId || "").trim();
+        getConversationIdFromURL();
 
 
-    /*
-     * Check if variable was actually populated
-     */
-
-    if (
-        !currentConversationId ||
-        currentConversationId === "{{ConversationId}}"
-    ) {
-
-        log(
-            "Conversation ID has not been populated."
-        );
+    if (!currentConversationId) {
 
         document.getElementById(
             "conversation-id"
         ).innerText =
             "Not Available";
 
+
+        document.getElementById(
+            "call-state"
+        ).innerText =
+            "No Conversation ID";
+
+
+        debugLog(
+            "⚠️ No conversation ID received."
+        );
+
+
         return;
 
     }
 
+
+    /*
+     * Display conversation ID
+     */
 
     document.getElementById(
         "conversation-id"
     ).innerText =
         currentConversationId;
 
+
+    /*
+     * Display active state
+     */
 
     document.getElementById(
         "call-state"
@@ -313,12 +428,23 @@ function initializeConversation() {
     document.getElementById(
         "call-state"
     ).className =
-        "value connected";
+        "value active";
 
 
-    log(
-        "Active Conversation ID: " +
+    debugLog(
+        "✅ Active Genesys Conversation ID: " +
         currentConversationId
+    );
+
+
+    /*
+     * Display complete URL
+     * for troubleshooting
+     */
+
+    debugLog(
+        "Current URL: " +
+        window.location.href
     );
 
 }
@@ -328,9 +454,13 @@ function initializeConversation() {
    AUDIO INITIALIZATION
 ========================================================= */
 
-function enableAudio() {
+async function enableAudio() {
 
     try {
+
+        /*
+         * Create AudioContext
+         */
 
         if (!audioContext) {
 
@@ -343,33 +473,61 @@ function enableAudio() {
         }
 
 
+        /*
+         * Resume AudioContext
+         */
+
         if (
             audioContext.state ===
             "suspended"
         ) {
 
-            audioContext.resume();
+            await audioContext.resume();
 
         }
 
 
-        log(
-            "Audio enabled. State: " +
+        debugLog(
+            "AudioContext state: " +
             audioContext.state
         );
+
+
+        /*
+         * Update button
+         */
+
+        document.getElementById(
+            "audio-button"
+        ).innerText =
+            "Audio Enabled";
 
 
         document.getElementById(
             "beep-status"
         ).innerText =
-            "Audio Enabled";
+            "Audio Ready";
+
+
+        document.getElementById(
+            "beep-status"
+        ).className =
+            "value beep";
+
+
+        /*
+         * Test beep
+         */
+
+        playTestBeep();
+
 
     }
 
     catch (error) {
 
-        log(
-            "Audio initialization error: " +
+        debugLog(
+            "❌ Audio initialization error: " +
             error.message
         );
 
@@ -379,17 +537,92 @@ function enableAudio() {
 
 
 /* =========================================================
-   PLAY BEEP
+   TEST BEEP
+========================================================= */
+
+function playTestBeep() {
+
+    if (!audioContext) {
+
+        return;
+
+    }
+
+
+    try {
+
+        const oscillator =
+            audioContext.createOscillator();
+
+
+        const gainNode =
+            audioContext.createGain();
+
+
+        oscillator.type =
+            "sine";
+
+
+        oscillator.frequency.value =
+            800;
+
+
+        gainNode.gain.value =
+            0.2;
+
+
+        oscillator.connect(
+            gainNode
+        );
+
+
+        gainNode.connect(
+            audioContext.destination
+        );
+
+
+        oscillator.start();
+
+
+        oscillator.stop(
+            audioContext.currentTime + 0.15
+        );
+
+
+        debugLog(
+            "🔊 Audio test beep played"
+        );
+
+    }
+
+    catch (error) {
+
+        debugLog(
+            "Test beep error: " +
+            error.message
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   CUSTOMER DISCONNECT BEEP
 ========================================================= */
 
 async function playDisconnectBeep() {
 
-    log(
-        "Attempting to play disconnect beep..."
+    debugLog(
+        "🔔 Attempting customer disconnect beep..."
     );
 
 
     try {
+
+        /*
+         * Create AudioContext if required
+         */
 
         if (!audioContext) {
 
@@ -401,6 +634,10 @@ async function playDisconnectBeep() {
 
         }
 
+
+        /*
+         * Resume context
+         */
 
         if (
             audioContext.state ===
@@ -413,16 +650,36 @@ async function playDisconnectBeep() {
 
 
         /*
-         * First beep
+         * Make sure audio is running
+         */
+
+        if (
+            audioContext.state !==
+            "running"
+        ) {
+
+            throw new Error(
+                "AudioContext is not running"
+            );
+
+        }
+
+
+        /*
+         * Create oscillator
          */
 
         const oscillator =
             audioContext.createOscillator();
 
 
-        const gain =
+        const gainNode =
             audioContext.createGain();
 
+
+        /*
+         * Beep frequency
+         */
 
         oscillator.type =
             "sine";
@@ -432,31 +689,53 @@ async function playDisconnectBeep() {
             1000;
 
 
-        gain.gain.setValueAtTime(
+        /*
+         * Volume
+
+         */
+
+        gainNode.gain.setValueAtTime(
             0.5,
             audioContext.currentTime
         );
 
 
-        oscillator.connect(gain);
+        /*
+         * Connect audio nodes
+         */
 
-        gain.connect(
+        oscillator.connect(
+            gainNode
+        );
+
+
+        gainNode.connect(
             audioContext.destination
         );
 
+
+        /*
+         * Play beep
+
+         */
 
         oscillator.start();
 
 
         oscillator.stop(
-            audioContext.currentTime + 0.4
+            audioContext.currentTime + 0.5
         );
 
+
+        /*
+         * Update UI
+
+         */
 
         document.getElementById(
             "beep-status"
         ).innerText =
-            "🔔 Beep Played";
+            "🔔 BEEP PLAYED";
 
 
         document.getElementById(
@@ -465,7 +744,19 @@ async function playDisconnectBeep() {
             "value beep";
 
 
-        log(
+        document.getElementById(
+            "call-state"
+        ).innerText =
+            "Customer Disconnected";
+
+
+        document.getElementById(
+            "call-state"
+        ).className =
+            "value ended";
+
+
+        debugLog(
             "🔔 CUSTOMER DISCONNECTED - BEEP PLAYED"
         );
 
@@ -479,8 +770,8 @@ async function playDisconnectBeep() {
             "Beep Error";
 
 
-        log(
-            "Beep error: " +
+        debugLog(
+            "❌ Beep error: " +
             error.message
         );
 
@@ -496,23 +787,36 @@ async function playDisconnectBeep() {
 async function pollLambda() {
 
     /*
-     * Do not poll until we know
-     * which conversation belongs
-     * to this script.
+     * Don't poll without conversation ID
      */
 
-    if (
-        !currentConversationId ||
-        currentConversationId ===
-        "{{ConversationId}}"
-    ) {
+    if (!currentConversationId) {
 
         return;
 
     }
 
 
+    /*
+     * Prevent overlapping requests
+     */
+
+    if (pollingInProgress) {
+
+        return;
+
+    }
+
+
+    pollingInProgress = true;
+
+
     try {
+
+        debugLog(
+            "Polling Lambda..."
+        );
+
 
         const response =
             await fetch(
@@ -538,6 +842,10 @@ async function pollLambda() {
             await response.json();
 
 
+        /*
+         * Lambda connected
+         */
+
         document.getElementById(
             "lambda-status"
         ).innerText =
@@ -545,13 +853,13 @@ async function pollLambda() {
 
 
         document.getElementById(
-            "lambda-conversation-id"
-        ).innerText =
-            data.conversationId || "-";
+            "lambda-status"
+        ).className =
+            "value active";
 
 
         /*
-         * No Lambda event
+         * No event yet
          */
 
         if (
@@ -560,13 +868,50 @@ async function pollLambda() {
         ) {
 
             document.getElementById(
-                "comparison"
+                "lambda-conversation-id"
+            ).innerText =
+                "-";
+
+
+            document.getElementById(
+                "comparison-status"
             ).innerText =
                 "Waiting for event";
+
+
+            document.getElementById(
+                "comparison-status"
+            ).className =
+                "value waiting";
+
+
+            pollingInProgress = false;
 
             return;
 
         }
+
+
+        /*
+         * Display Lambda ID
+         */
+
+        document.getElementById(
+            "lambda-conversation-id"
+        ).innerText =
+            data.conversationId;
+
+
+        debugLog(
+            "Lambda Event: " +
+            data.event
+        );
+
+
+        debugLog(
+            "Lambda Conversation ID: " +
+            data.conversationId
+        );
 
 
         /*
@@ -578,63 +923,71 @@ async function pollLambda() {
             "CUSTOMER_DISCONNECTED"
         ) {
 
+            pollingInProgress = false;
+
             return;
 
         }
 
 
         /*
-         * Normalize IDs
+         * Normalize both IDs
          */
 
-        const localId =
+        const genesysId =
             String(
                 currentConversationId
-            ).trim()
+            )
+            .trim()
             .toLowerCase();
 
 
         const lambdaId =
             String(
                 data.conversationId
-            ).trim()
+            )
+            .trim()
             .toLowerCase();
 
 
-        log(
-            "Local ID: " +
-            localId
+        debugLog(
+            "Genesys ID: " +
+            genesysId
         );
 
 
-        log(
+        debugLog(
             "Lambda ID: " +
             lambdaId
         );
 
 
         /*
-         * COMPARE
+         * Compare IDs
          */
 
         if (
-            localId === lambdaId
+            genesysId === lambdaId
         ) {
 
+            /*
+             * MATCH
+             */
+
             document.getElementById(
-                "comparison"
+                "comparison-status"
             ).innerText =
                 "✅ MATCH";
 
 
             document.getElementById(
-                "comparison"
+                "comparison-status"
             ).className =
                 "value match";
 
 
-            log(
-                "✅ Conversation ID MATCH"
+            debugLog(
+                "✅ CONVERSATION ID MATCH"
             );
 
 
@@ -647,14 +1000,22 @@ async function pollLambda() {
                 lambdaId
             ) {
 
-                log(
+                debugLog(
                     "Beep already played for this conversation."
                 );
+
+
+                pollingInProgress = false;
 
                 return;
 
             }
 
+
+            /*
+             * Save ID
+
+             */
 
             lastBeepedConversationId =
                 lambdaId;
@@ -662,44 +1023,33 @@ async function pollLambda() {
 
             /*
              * Play beep
+
              */
 
             await playDisconnectBeep();
-
-
-            /*
-             * Update call state
-             */
-
-            document.getElementById(
-                "call-state"
-            ).innerText =
-                "Customer Disconnected";
-
-
-            document.getElementById(
-                "call-state"
-            ).className =
-                "value disconnected";
 
         }
 
         else {
 
+            /*
+             * MISMATCH
+             */
+
             document.getElementById(
-                "comparison"
+                "comparison-status"
             ).innerText =
                 "❌ MISMATCH";
 
 
             document.getElementById(
-                "comparison"
+                "comparison-status"
             ).className =
                 "value mismatch";
 
 
-            log(
-                "❌ Conversation ID mismatch"
+            debugLog(
+                "❌ CONVERSATION ID MISMATCH"
             );
 
         }
@@ -714,12 +1064,21 @@ async function pollLambda() {
             "Error";
 
 
-        log(
-            "Lambda error: " +
+        document.getElementById(
+            "lambda-status"
+        ).className =
+            "value ended";
+
+
+        debugLog(
+            "❌ Lambda error: " +
             error.message
         );
 
     }
+
+
+    pollingInProgress = false;
 
 }
 
@@ -738,13 +1097,15 @@ setInterval(
    INITIALIZATION
 ========================================================= */
 
-initializeConversation();
-
-log(
-    "Monitor initialized."
+debugLog(
+    "Genesys Call Monitor initialized."
 );
 
-log(
+
+initializeConversation();
+
+
+debugLog(
     "Waiting for customer disconnect event..."
 );
 
