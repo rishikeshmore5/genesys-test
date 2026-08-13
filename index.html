@@ -2,317 +2,640 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Genesys Call Disconnect Monitor</title>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Genesys Customer Disconnect Monitor</title>
 
     <style>
+
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 15px;
+            margin: 20px;
             background: #f5f5f5;
         }
 
-        .container {
+        .card {
+            width: 420px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
             background: white;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .card h3 {
+            margin-top: 0;
+        }
+
+        .row {
+            margin: 12px 0;
+            font-size: 14px;
+        }
+
+        .label {
+            font-weight: bold;
+            color: #555;
+        }
+
+        .value {
+            color: #0066cc;
+            font-weight: bold;
+            word-break: break-all;
+        }
+
+        .connected {
+            color: green;
+        }
+
+        .disconnected {
+            color: red;
+        }
+
+        .match {
+            color: green;
+            font-weight: bold;
+        }
+
+        .mismatch {
+            color: red;
+            font-weight: bold;
+        }
+
+        .beep {
+            color: green;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .log {
+            margin-top: 20px;
+            width: 420px;
+            height: 180px;
+            overflow-y: auto;
+            background: #111;
+            color: #00ff00;
             padding: 15px;
             border-radius: 8px;
-        }
-
-        .status {
-            padding: 8px;
-            margin-bottom: 10px;
-            border-radius: 5px;
-            background: #eeeeee;
-        }
-
-        .interaction {
-            padding: 10px;
-            background: #eef6ff;
-            margin-bottom: 10px;
-            word-break: break-all;
-        }
-
-        .event {
-            padding: 12px;
-            margin-top: 10px;
-            background: #fff3cd;
-            border-left: 5px solid #ff9800;
-        }
-
-        .conversation-id {
             font-family: monospace;
-            word-break: break-all;
-            margin-top: 5px;
+            font-size: 12px;
         }
+
+        .enable-audio {
+            margin-top: 15px;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background: #0066cc;
+            color: white;
+            cursor: pointer;
+        }
+
     </style>
+
 </head>
+
 
 <body>
 
-<div class="container">
+    <div class="card">
 
-    <h3>Call Disconnect Monitor</h3>
+        <h3>Live Call Monitor</h3>
 
-    <div id="connectionStatus" class="status">
-        Connecting to Lambda...
-    </div>
+        <div class="row">
+            <span class="label">
+                Call State:
+            </span>
 
-    <div class="interaction">
-        <strong>Current Interaction:</strong>
-
-        <div
-            id="currentInteraction"
-            class="conversation-id">
-            Waiting for interaction...
+            <span id="call-state"
+                  class="value">
+                Waiting
+            </span>
         </div>
+
+
+        <div class="row">
+
+            <span class="label">
+                Conversation ID:
+            </span>
+
+            <span id="conversation-id"
+                  class="value">
+                Waiting...
+            </span>
+
+        </div>
+
+
+        <div class="row">
+
+            <span class="label">
+                Lambda Status:
+            </span>
+
+            <span id="lambda-status"
+                  class="value">
+                Not Connected
+            </span>
+
+        </div>
+
+
+        <div class="row">
+
+            <span class="label">
+                Lambda Conversation ID:
+            </span>
+
+            <span id="lambda-conversation-id"
+                  class="value">
+                -
+            </span>
+
+        </div>
+
+
+        <div class="row">
+
+            <span class="label">
+                ID Comparison:
+            </span>
+
+            <span id="comparison"
+                  class="value">
+                Waiting
+            </span>
+
+        </div>
+
+
+        <div class="row">
+
+            <span class="label">
+                Beep Status:
+            </span>
+
+            <span id="beep-status"
+                  class="value">
+                Not Played
+            </span>
+
+        </div>
+
+
+        <button
+            class="enable-audio"
+            onclick="enableAudio()">
+
+            Enable Audio
+
+        </button>
+
     </div>
 
-    <div id="events">
-        Waiting for customer disconnect...
-    </div>
 
-</div>
+    <div
+        id="log"
+        class="log">
+
+        Starting monitor...
+
+    </div>
 
 
 <script>
 
+
+/* =========================================================
+   CONFIGURATION
+========================================================= */
+
+const LAMBDA_URL =
+    "https://v4gejir3ejrwwlnyibcx4a7uiq0kljsw.lambda-url.us-east-1.on.aws/";
+
+
+/*
+ * IMPORTANT
+ *
+ * This value should be populated from the
+ * Genesys Script input variable.
+ *
+ * If your Script HTML/page supports variable
+ * interpolation, replace the value below with:
+ *
+ * {{ConversationId}}
+ *
+ */
+
+let currentConversationId = "{{ConversationId}}";
+
+
+let lastBeepedConversationId = null;
+
+let audioContext = null;
+
+
+/* =========================================================
+   LOGGING
+========================================================= */
+
+function log(message) {
+
+    console.log(message);
+
+    const logBox =
+        document.getElementById("log");
+
+    const time =
+        new Date().toLocaleTimeString();
+
+    logBox.innerHTML +=
+        `<div>[${time}] ${message}</div>`;
+
+    logBox.scrollTop =
+        logBox.scrollHeight;
+}
+
+
+/* =========================================================
+   DISPLAY CONVERSATION ID
+========================================================= */
+
+function initializeConversation() {
+
     /*
-     * =========================================================
-     * CONFIGURATION
-     * =========================================================
+     * Remove whitespace
      */
 
-    const LAMBDA_URL =
-        "https://v4gejir3ejrwwlnyibcx4a7uiq0kljsw.lambda-url.us-east-1.on.aws/";
+    currentConversationId =
+        String(currentConversationId || "").trim();
 
 
     /*
-     * Current interaction belonging to THIS browser/agent
-     */
-    let currentConversationId = null;
-
-
-    /*
-     * Last disconnect event processed
-     */
-    let lastProcessedConversationId = null;
-
-
-    /*
-     * =========================================================
-     * RECEIVE INTERACTION ID FROM GENESYS AGENT SCRIPT
-     * =========================================================
-     *
-     * The Agent Script can send:
-     *
-     * window.postMessage({
-     *     type: "GENESYS_INTERACTION",
-     *     conversationId: "xxxxxxxx"
-     * }, "*");
-     *
+     * Check if variable was actually populated
      */
 
-    window.addEventListener("message", function (event) {
+    if (
+        !currentConversationId ||
+        currentConversationId === "{{ConversationId}}"
+    ) {
 
-        console.log(
-            "Message received from parent:",
-            event.data
+        log(
+            "Conversation ID has not been populated."
+        );
+
+        document.getElementById(
+            "conversation-id"
+        ).innerText =
+            "Not Available";
+
+        return;
+
+    }
+
+
+    document.getElementById(
+        "conversation-id"
+    ).innerText =
+        currentConversationId;
+
+
+    document.getElementById(
+        "call-state"
+    ).innerText =
+        "Active";
+
+
+    document.getElementById(
+        "call-state"
+    ).className =
+        "value connected";
+
+
+    log(
+        "Active Conversation ID: " +
+        currentConversationId
+    );
+
+}
+
+
+/* =========================================================
+   AUDIO INITIALIZATION
+========================================================= */
+
+function enableAudio() {
+
+    try {
+
+        if (!audioContext) {
+
+            audioContext =
+                new (
+                    window.AudioContext ||
+                    window.webkitAudioContext
+                )();
+
+        }
+
+
+        if (
+            audioContext.state ===
+            "suspended"
+        ) {
+
+            audioContext.resume();
+
+        }
+
+
+        log(
+            "Audio enabled. State: " +
+            audioContext.state
         );
 
 
-        if (!event.data) {
-            return;
+        document.getElementById(
+            "beep-status"
+        ).innerText =
+            "Audio Enabled";
+
+    }
+
+    catch (error) {
+
+        log(
+            "Audio initialization error: " +
+            error.message
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   PLAY BEEP
+========================================================= */
+
+async function playDisconnectBeep() {
+
+    log(
+        "Attempting to play disconnect beep..."
+    );
+
+
+    try {
+
+        if (!audioContext) {
+
+            audioContext =
+                new (
+                    window.AudioContext ||
+                    window.webkitAudioContext
+                )();
+
+        }
+
+
+        if (
+            audioContext.state ===
+            "suspended"
+        ) {
+
+            await audioContext.resume();
+
         }
 
 
         /*
-         * New interaction
+         * First beep
          */
-        if (
-            event.data.type ===
-            "GENESYS_INTERACTION"
-        ) {
 
-            const conversationId =
-                event.data.conversationId;
+        const oscillator =
+            audioContext.createOscillator();
 
 
-            if (!conversationId) {
-                return;
-            }
+        const gain =
+            audioContext.createGain();
 
 
-            console.log(
-                "Current Genesys interaction:",
-                conversationId
-            );
+        oscillator.type =
+            "sine";
 
 
-            currentConversationId =
-                conversationId;
+        oscillator.frequency.value =
+            1000;
 
 
-            document.getElementById(
-                "currentInteraction"
-            ).innerText =
-                conversationId;
+        gain.gain.setValueAtTime(
+            0.5,
+            audioContext.currentTime
+        );
 
 
-            /*
-             * Reset previous event
-             */
-            lastProcessedConversationId =
-                null;
-        }
+        oscillator.connect(gain);
+
+        gain.connect(
+            audioContext.destination
+        );
 
 
-        /*
-         * Call ended / no active interaction
-         */
-        if (
-            event.data.type ===
-            "GENESYS_CALL_ENDED"
-        ) {
-
-            console.log(
-                "Genesys call ended"
-            );
+        oscillator.start();
 
 
-            currentConversationId =
-                null;
+        oscillator.stop(
+            audioContext.currentTime + 0.4
+        );
 
 
-            document.getElementById(
-                "currentInteraction"
-            ).innerText =
-                "No active interaction";
-        }
+        document.getElementById(
+            "beep-status"
+        ).innerText =
+            "🔔 Beep Played";
 
-    });
 
+        document.getElementById(
+            "beep-status"
+        ).className =
+            "value beep";
+
+
+        log(
+            "🔔 CUSTOMER DISCONNECTED - BEEP PLAYED"
+        );
+
+    }
+
+    catch (error) {
+
+        document.getElementById(
+            "beep-status"
+        ).innerText =
+            "Beep Error";
+
+
+        log(
+            "Beep error: " +
+            error.message
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   POLL LAMBDA
+========================================================= */
+
+async function pollLambda() {
 
     /*
-     * =========================================================
-     * POLL LAMBDA
-     * =========================================================
+     * Do not poll until we know
+     * which conversation belongs
+     * to this script.
      */
 
-    async function pollLambda() {
+    if (
+        !currentConversationId ||
+        currentConversationId ===
+        "{{ConversationId}}"
+    ) {
 
-        try {
+        return;
 
-            const response =
-                await fetch(
-                    LAMBDA_URL,
-                    {
-                        method: "GET",
-                        cache: "no-store"
-                    }
-                );
+    }
 
 
-            if (!response.ok) {
+    try {
 
-                throw new Error(
-                    "Lambda HTTP " +
-                    response.status
-                );
-
-            }
-
-
-            const data =
-                await response.json();
-
-
-            console.log(
-                "Lambda event:",
-                data
+        const response =
+            await fetch(
+                LAMBDA_URL,
+                {
+                    method: "GET",
+                    cache: "no-store"
+                }
             );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "HTTP " +
+                response.status
+            );
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        document.getElementById(
+            "lambda-status"
+        ).innerText =
+            "Connected";
+
+
+        document.getElementById(
+            "lambda-conversation-id"
+        ).innerText =
+            data.conversationId || "-";
+
+
+        /*
+         * No Lambda event
+         */
+
+        if (
+            !data.event ||
+            !data.conversationId
+        ) {
+
+            document.getElementById(
+                "comparison"
+            ).innerText =
+                "Waiting for event";
+
+            return;
+
+        }
+
+
+        /*
+         * Only process customer disconnect
+         */
+
+        if (
+            data.event !==
+            "CUSTOMER_DISCONNECTED"
+        ) {
+
+            return;
+
+        }
+
+
+        /*
+         * Normalize IDs
+         */
+
+        const localId =
+            String(
+                currentConversationId
+            ).trim()
+            .toLowerCase();
+
+
+        const lambdaId =
+            String(
+                data.conversationId
+            ).trim()
+            .toLowerCase();
+
+
+        log(
+            "Local ID: " +
+            localId
+        );
+
+
+        log(
+            "Lambda ID: " +
+            lambdaId
+        );
+
+
+        /*
+         * COMPARE
+         */
+
+        if (
+            localId === lambdaId
+        ) {
+
+            document.getElementById(
+                "comparison"
+            ).innerText =
+                "✅ MATCH";
 
 
             document.getElementById(
-                "connectionStatus"
-            ).innerText =
-                "Lambda Connected";
+                "comparison"
+            ).className =
+                "value match";
 
 
-            /*
-             * No event
-             */
-            if (
-                !data.event ||
-                !data.conversationId
-            ) {
-
-                return;
-            }
-
-
-            /*
-             * We only care about customer disconnect
-             */
-            if (
-                data.event !==
-                "CUSTOMER_DISCONNECTED"
-            ) {
-
-                return;
-            }
-
-
-            /*
-             * =================================================
-             * IMPORTANT COMPARISON
-             * =================================================
-             */
-
-            console.log(
-                "Current browser interaction:",
-                currentConversationId
+            log(
+                "✅ Conversation ID MATCH"
             );
-
-
-            console.log(
-                "Lambda conversation:",
-                data.conversationId
-            );
-
-
-            /*
-             * If there is no active interaction,
-             * ignore the event.
-             */
-
-            if (!currentConversationId) {
-
-                console.log(
-                    "No active interaction in this browser. Ignoring event."
-                );
-
-                return;
-            }
-
-
-            /*
-             * Compare conversation IDs
-             */
-
-            if (
-                currentConversationId !==
-                data.conversationId
-            ) {
-
-                console.log(
-                    "Conversation ID mismatch. Ignoring event."
-                );
-
-                return;
-            }
 
 
             /*
@@ -320,226 +643,110 @@
              */
 
             if (
-                lastProcessedConversationId ===
-                data.conversationId
+                lastBeepedConversationId ===
+                lambdaId
             ) {
 
-                console.log(
-                    "Event already processed."
+                log(
+                    "Beep already played for this conversation."
                 );
 
                 return;
+
             }
 
 
-            /*
-             * Save processed ID
-             */
-
-            lastProcessedConversationId =
-                data.conversationId;
-
-
-            /*
-             * MATCH
-             */
-
-            console.log(
-                "================================="
-            );
-
-            console.log(
-                "CUSTOMER DISCONNECTED"
-            );
-
-            console.log(
-                "Conversation ID:",
-                data.conversationId
-            );
-
-            console.log(
-                "================================="
-            );
-
-
-            /*
-             * Display event
-             */
-
-            showDisconnectEvent(
-                data.conversationId
-            );
+            lastBeepedConversationId =
+                lambdaId;
 
 
             /*
              * Play beep
              */
 
-            playBeep();
+            await playDisconnectBeep();
 
-        }
 
-        catch (error) {
-
-            console.error(
-                "Lambda polling error:",
-                error
-            );
-
+            /*
+             * Update call state
+             */
 
             document.getElementById(
-                "connectionStatus"
+                "call-state"
             ).innerText =
-                "Lambda Connection Error";
-        }
-
-    }
+                "Customer Disconnected";
 
 
-    /*
-     * =========================================================
-     * DISPLAY DISCONNECT
-     * =========================================================
-     */
-
-    function showDisconnectEvent(
-        conversationId
-    ) {
-
-        const events =
             document.getElementById(
-                "events"
-            );
-
-
-        events.innerHTML = `
-
-            <div class="event">
-
-                <strong>
-                    🔔 CUSTOMER DISCONNECTED
-                </strong>
-
-                <div class="conversation-id">
-
-                    Conversation ID:
-                    <br>
-
-                    ${conversationId}
-
-                </div>
-
-            </div>
-
-        `;
-
-    }
-
-
-    /*
-     * =========================================================
-     * BEEP
-     * =========================================================
-     */
-
-    let audioContext = null;
-
-
-    function playBeep() {
-
-        try {
-
-            if (!audioContext) {
-
-                audioContext =
-                    new (
-                        window.AudioContext ||
-                        window.webkitAudioContext
-                    )();
-
-            }
-
-
-            if (
-                audioContext.state ===
-                "suspended"
-            ) {
-
-                audioContext.resume();
-
-            }
-
-
-            const oscillator =
-                audioContext.createOscillator();
-
-
-            const gain =
-                audioContext.createGain();
-
-
-            oscillator.type =
-                "sine";
-
-
-            oscillator.frequency.value =
-                1000;
-
-
-            gain.gain.value =
-                0.3;
-
-
-            oscillator.connect(
-                gain
-            );
-
-
-            gain.connect(
-                audioContext.destination
-            );
-
-
-            oscillator.start();
-
-
-            oscillator.stop(
-                audioContext.currentTime +
-                0.3
-            );
-
-
-            console.log(
-                "🔔 Beep played"
-            );
+                "call-state"
+            ).className =
+                "value disconnected";
 
         }
 
-        catch (error) {
+        else {
 
-            console.error(
-                "Beep error:",
-                error
+            document.getElementById(
+                "comparison"
+            ).innerText =
+                "❌ MISMATCH";
+
+
+            document.getElementById(
+                "comparison"
+            ).className =
+                "value mismatch";
+
+
+            log(
+                "❌ Conversation ID mismatch"
             );
 
         }
 
     }
 
+    catch (error) {
 
-    /*
-     * =========================================================
-     * START POLLING
-     * =========================================================
-     */
-
-    pollLambda();
+        document.getElementById(
+            "lambda-status"
+        ).innerText =
+            "Error";
 
 
-    setInterval(
-        pollLambda,
-        1000
-    );
+        log(
+            "Lambda error: " +
+            error.message
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   START POLLING
+========================================================= */
+
+setInterval(
+    pollLambda,
+    1000
+);
+
+
+/* =========================================================
+   INITIALIZATION
+========================================================= */
+
+initializeConversation();
+
+log(
+    "Monitor initialized."
+);
+
+log(
+    "Waiting for customer disconnect event..."
+);
 
 </script>
 
