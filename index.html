@@ -783,156 +783,200 @@ async function playDisconnectBeep() {
 /* =========================================================
    POLL LAMBDA
 ========================================================= */
-
 async function pollLambda() {
 
-    /*
-     * Don't poll without conversation ID
-     */
+if (!currentConversationId) {
 
-    if (!currentConversationId) {
+    debugLog(
+        "No active Conversation ID. Poll skipped."
+    );
 
-        return;
+    return;
+
+}
+
+
+if (pollingInProgress) {
+
+    return;
+
+}
+
+
+pollingInProgress = true;
+
+
+try {
+
+    // =================================================
+    // BUILD URL
+    // =================================================
+
+    const pollingUrl =
+        LAMBDA_URL +
+        "?conversationId=" +
+        encodeURIComponent(
+            currentConversationId
+        );
+
+
+    debugLog(
+        "Polling Lambda..."
+    );
+
+
+    debugLog(
+        "Request URL: " +
+        pollingUrl
+    );
+
+
+    // =================================================
+    // CALL LAMBDA
+    // =================================================
+
+    const response =
+        await fetch(
+            pollingUrl,
+            {
+                method: "GET",
+                cache: "no-store"
+            }
+        );
+
+
+    // =================================================
+    // READ RESPONSE BODY FIRST
+    // =================================================
+
+    const responseText =
+        await response.text();
+
+
+    debugLog(
+        "Lambda HTTP Status: " +
+        response.status
+    );
+
+
+    debugLog(
+        "Lambda Response: " +
+        responseText
+    );
+
+
+    // =================================================
+    // HANDLE HTTP ERROR
+    // =================================================
+
+    if (!response.ok) {
+
+        throw new Error(
+            "HTTP " +
+            response.status +
+            ": " +
+            responseText
+        );
 
     }
 
 
-    /*
-     * Prevent overlapping requests
-     */
+    // =================================================
+    // PARSE JSON
+    // =================================================
 
-    if (pollingInProgress) {
-
-        return;
-
-    }
-
-
-    pollingInProgress = true;
-
+    let data;
 
     try {
 
-        debugLog(
-            "Polling Lambda..."
-        );
-
-
-        const response =
-            await fetch(
-                LAMBDA_URL,
-                {
-                    method: "GET",
-                    cache: "no-store"
-                }
+        data =
+            JSON.parse(
+                responseText
             );
 
+    }
 
-        if (!response.ok) {
+    catch (jsonError) {
 
-            throw new Error(
-                "HTTP " +
-                response.status
-            );
+        throw new Error(
+            "Invalid JSON from Lambda: " +
+            responseText
+        );
 
-        }
-
-
-        const data =
-            await response.json();
+    }
 
 
-        /*
-         * Lambda connected
-         */
+    // =================================================
+    // LAMBDA CONNECTED
+    // =================================================
+
+    document.getElementById(
+        "lambda-status"
+    ).innerText =
+        "Connected";
+
+
+    document.getElementById(
+        "lambda-status"
+    ).className =
+        "value active";
+
+
+    // =================================================
+    // DISPLAY LAMBDA ID
+    // =================================================
+
+    document.getElementById(
+        "lambda-conversation-id"
+    ).innerText =
+        data.conversationId ||
+        "-";
+
+
+    // =================================================
+    // NO EVENT
+    // =================================================
+
+    if (
+        !data.event
+    ) {
 
         document.getElementById(
-            "lambda-status"
+            "comparison-status"
         ).innerText =
-            "Connected";
-
-
-        document.getElementById(
-            "lambda-status"
-        ).className =
-            "value active";
-
-
-        /*
-         * No event yet
-         */
-
-        if (
-            !data.event ||
-            !data.conversationId
-        ) {
-
-            document.getElementById(
-                "lambda-conversation-id"
-            ).innerText =
-                "-";
-
-
-            document.getElementById(
-                "comparison-status"
-            ).innerText =
-                "Waiting for event";
-
-
-            document.getElementById(
-                "comparison-status"
-            ).className =
-                "value waiting";
-
-
-            pollingInProgress = false;
-
-            return;
-
-        }
-
-
-        /*
-         * Display Lambda ID
-         */
-
-        document.getElementById(
-            "lambda-conversation-id"
-        ).innerText =
-            data.conversationId;
+            "Waiting for customer disconnect";
 
 
         debugLog(
-            "Lambda Event: " +
-            data.event
+            "No disconnect event yet."
         );
 
+
+        pollingInProgress =
+            false;
+
+        return;
+
+    }
+
+
+    // =================================================
+    // CUSTOMER DISCONNECTED
+    // =================================================
+
+    if (
+        data.event ===
+        "CUSTOMER_DISCONNECTED"
+    ) {
 
         debugLog(
-            "Lambda Conversation ID: " +
-            data.conversationId
+            "🔔 Customer disconnect event received."
         );
 
 
-        /*
-         * Only process customer disconnect
-         */
-
-        if (
-            data.event !==
-            "CUSTOMER_DISCONNECTED"
-        ) {
-
-            pollingInProgress = false;
-
-            return;
-
-        }
-
-
-        /*
-         * Normalize both IDs
-         */
+        // ---------------------------------------------
+        // NORMALIZE IDS
+        // ---------------------------------------------
 
         const genesysId =
             String(
@@ -951,28 +995,25 @@ async function pollLambda() {
 
 
         debugLog(
-            "Genesys ID: " +
+            "Genesys Conversation ID: " +
             genesysId
         );
 
 
         debugLog(
-            "Lambda ID: " +
+            "Lambda Conversation ID: " +
             lambdaId
         );
 
 
-        /*
-         * Compare IDs
-         */
+        // ---------------------------------------------
+        // COMPARE
+        // ---------------------------------------------
 
         if (
-            genesysId === lambdaId
+            genesysId ===
+            lambdaId
         ) {
-
-            /*
-             * MATCH
-             */
 
             document.getElementById(
                 "comparison-status"
@@ -983,17 +1024,17 @@ async function pollLambda() {
             document.getElementById(
                 "comparison-status"
             ).className =
-                "value match";
+                "value active";
 
 
             debugLog(
-                "✅ CONVERSATION ID MATCH"
+                "✅ Conversation IDs MATCH."
             );
 
 
-            /*
-             * Prevent duplicate beep
-             */
+            // -----------------------------------------
+            // DUPLICATE PROTECTION
+            // -----------------------------------------
 
             if (
                 lastBeepedConversationId ===
@@ -1005,36 +1046,27 @@ async function pollLambda() {
                 );
 
 
-                pollingInProgress = false;
+                pollingInProgress =
+                    false;
 
                 return;
 
             }
 
 
-            /*
-             * Save ID
-
-             */
-
             lastBeepedConversationId =
                 lambdaId;
 
 
-            /*
-             * Play beep
-
-             */
+            // -----------------------------------------
+            // PLAY BEEP
+            // -----------------------------------------
 
             await playDisconnectBeep();
 
         }
 
         else {
-
-            /*
-             * MISMATCH
-             */
 
             document.getElementById(
                 "comparison-status"
@@ -1045,40 +1077,43 @@ async function pollLambda() {
             document.getElementById(
                 "comparison-status"
             ).className =
-                "value mismatch";
+                "value ended";
 
 
             debugLog(
-                "❌ CONVERSATION ID MISMATCH"
+                "❌ Conversation IDs DO NOT MATCH."
             );
 
         }
 
     }
 
-    catch (error) {
+}
 
-        document.getElementById(
-            "lambda-status"
-        ).innerText =
-            "Error";
+catch (error) {
 
-
-        document.getElementById(
-            "lambda-status"
-        ).className =
-            "value ended";
+    document.getElementById(
+        "lambda-status"
+    ).innerText =
+        "Error";
 
 
-        debugLog(
-            "❌ Lambda error: " +
-            error.message
-        );
-
-    }
+    document.getElementById(
+        "lambda-status"
+    ).className =
+        "value ended";
 
 
-    pollingInProgress = false;
+    debugLog(
+        "❌ Lambda error: " +
+        error.message
+    );
+
+}
+
+
+pollingInProgress =
+    false;
 
 }
 
