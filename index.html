@@ -1,110 +1,548 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agent Details Form</title>
+
+    <title>Genesys Call Disconnect Monitor</title>
+
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f7f6;
-            display: flex;
-            justify-content: center;
-            padding: 40px;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 15px;
+            background: #f5f5f5;
         }
-        .form-container {
+
+        .container {
             background: white;
-            padding: 30px;
+            padding: 15px;
             border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 500px;
         }
-        h2 {
-            margin-top: 0;
-            color: #333;
-            border-bottom: 2px solid #007bff;
-            padding-bottom: 10px;
+
+        .status {
+            padding: 8px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            background: #eeeeee;
         }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #555;
-        }
-        input, select, textarea {
-            width: 100%;
+
+        .interaction {
             padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box; /* Ensures padding doesn't affect width */
+            background: #eef6ff;
+            margin-bottom: 10px;
+            word-break: break-all;
         }
-        input:focus {
-            border-color: #007bff;
-            outline: none;
+
+        .event {
+            padding: 12px;
+            margin-top: 10px;
+            background: #fff3cd;
+            border-left: 5px solid #ff9800;
         }
-        button {
-            background-color: #007bff;
-            color: white;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            width: 100%;
-            font-size: 16px;
-        }
-        button:hover {
-            background-color: #0056b3;
+
+        .conversation-id {
+            font-family: monospace;
+            word-break: break-all;
+            margin-top: 5px;
         }
     </style>
 </head>
+
 <body>
 
-<div class="form-container">
-    <h2>Agent Registration</h2>
-    <form action="/submit-agent-details" method="POST">
-        
-        <div class="form-group">
-            <label for="agentName">Full Name</label>
-            <input type="text" id="agentName" name="agentName" placeholder="e.g. John Doe" required>
-        </div>
+<div class="container">
 
-        <div class="form-group">
-            <label for="agentID">Agent ID / License Number</label>
-            <input type="text" id="agentID" name="agentID" placeholder="AG-12345" required>
-        </div>
+    <h3>Call Disconnect Monitor</h3>
 
-        <div class="form-group">
-            <label for="email">Email Address</label>
-            <input type="email" id="email" name="email" placeholder="agent@example.com" required>
-        </div>
+    <div id="connectionStatus" class="status">
+        Connecting to Lambda...
+    </div>
 
-        <div class="form-group">
-            <label for="specialty">Specialty</label>
-            <select id="specialty" name="specialty">
-                <option value="real-estate">Real Estate</option>
-                <option value="insurance">Insurance</option>
-                <option value="travel">Travel</option>
-                <option value="other">Other</option>
-            </select>
-        </div>
+    <div class="interaction">
+        <strong>Current Interaction:</strong>
 
-        <div class="form-group">
-            <label for="experience">Years of Experience</label>
-            <input type="number" id="experience" name="experience" min="0" max="50">
+        <div
+            id="currentInteraction"
+            class="conversation-id">
+            Waiting for interaction...
         </div>
+    </div>
 
-        <div class="form-group">
-            <label for="bio">Short Bio</label>
-            <textarea id="bio" name="bio" rows="4" placeholder="Briefly describe your expertise..."></textarea>
-        </div>
+    <div id="events">
+        Waiting for customer disconnect...
+    </div>
 
-        <button type="submit">Register Agent</button>
-    </form>
 </div>
 
+
+<script>
+
+    /*
+     * =========================================================
+     * CONFIGURATION
+     * =========================================================
+     */
+
+    const LAMBDA_URL =
+        "https://v4gejir3ejrwwlnyibcx4a7uiq0kljsw.lambda-url.us-east-1.on.aws/";
+
+
+    /*
+     * Current interaction belonging to THIS browser/agent
+     */
+    let currentConversationId = null;
+
+
+    /*
+     * Last disconnect event processed
+     */
+    let lastProcessedConversationId = null;
+
+
+    /*
+     * =========================================================
+     * RECEIVE INTERACTION ID FROM GENESYS AGENT SCRIPT
+     * =========================================================
+     *
+     * The Agent Script can send:
+     *
+     * window.postMessage({
+     *     type: "GENESYS_INTERACTION",
+     *     conversationId: "xxxxxxxx"
+     * }, "*");
+     *
+     */
+
+    window.addEventListener("message", function (event) {
+
+        console.log(
+            "Message received from parent:",
+            event.data
+        );
+
+
+        if (!event.data) {
+            return;
+        }
+
+
+        /*
+         * New interaction
+         */
+        if (
+            event.data.type ===
+            "GENESYS_INTERACTION"
+        ) {
+
+            const conversationId =
+                event.data.conversationId;
+
+
+            if (!conversationId) {
+                return;
+            }
+
+
+            console.log(
+                "Current Genesys interaction:",
+                conversationId
+            );
+
+
+            currentConversationId =
+                conversationId;
+
+
+            document.getElementById(
+                "currentInteraction"
+            ).innerText =
+                conversationId;
+
+
+            /*
+             * Reset previous event
+             */
+            lastProcessedConversationId =
+                null;
+        }
+
+
+        /*
+         * Call ended / no active interaction
+         */
+        if (
+            event.data.type ===
+            "GENESYS_CALL_ENDED"
+        ) {
+
+            console.log(
+                "Genesys call ended"
+            );
+
+
+            currentConversationId =
+                null;
+
+
+            document.getElementById(
+                "currentInteraction"
+            ).innerText =
+                "No active interaction";
+        }
+
+    });
+
+
+    /*
+     * =========================================================
+     * POLL LAMBDA
+     * =========================================================
+     */
+
+    async function pollLambda() {
+
+        try {
+
+            const response =
+                await fetch(
+                    LAMBDA_URL,
+                    {
+                        method: "GET",
+                        cache: "no-store"
+                    }
+                );
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Lambda HTTP " +
+                    response.status
+                );
+
+            }
+
+
+            const data =
+                await response.json();
+
+
+            console.log(
+                "Lambda event:",
+                data
+            );
+
+
+            document.getElementById(
+                "connectionStatus"
+            ).innerText =
+                "Lambda Connected";
+
+
+            /*
+             * No event
+             */
+            if (
+                !data.event ||
+                !data.conversationId
+            ) {
+
+                return;
+            }
+
+
+            /*
+             * We only care about customer disconnect
+             */
+            if (
+                data.event !==
+                "CUSTOMER_DISCONNECTED"
+            ) {
+
+                return;
+            }
+
+
+            /*
+             * =================================================
+             * IMPORTANT COMPARISON
+             * =================================================
+             */
+
+            console.log(
+                "Current browser interaction:",
+                currentConversationId
+            );
+
+
+            console.log(
+                "Lambda conversation:",
+                data.conversationId
+            );
+
+
+            /*
+             * If there is no active interaction,
+             * ignore the event.
+             */
+
+            if (!currentConversationId) {
+
+                console.log(
+                    "No active interaction in this browser. Ignoring event."
+                );
+
+                return;
+            }
+
+
+            /*
+             * Compare conversation IDs
+             */
+
+            if (
+                currentConversationId !==
+                data.conversationId
+            ) {
+
+                console.log(
+                    "Conversation ID mismatch. Ignoring event."
+                );
+
+                return;
+            }
+
+
+            /*
+             * Prevent duplicate beep
+             */
+
+            if (
+                lastProcessedConversationId ===
+                data.conversationId
+            ) {
+
+                console.log(
+                    "Event already processed."
+                );
+
+                return;
+            }
+
+
+            /*
+             * Save processed ID
+             */
+
+            lastProcessedConversationId =
+                data.conversationId;
+
+
+            /*
+             * MATCH
+             */
+
+            console.log(
+                "================================="
+            );
+
+            console.log(
+                "CUSTOMER DISCONNECTED"
+            );
+
+            console.log(
+                "Conversation ID:",
+                data.conversationId
+            );
+
+            console.log(
+                "================================="
+            );
+
+
+            /*
+             * Display event
+             */
+
+            showDisconnectEvent(
+                data.conversationId
+            );
+
+
+            /*
+             * Play beep
+             */
+
+            playBeep();
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Lambda polling error:",
+                error
+            );
+
+
+            document.getElementById(
+                "connectionStatus"
+            ).innerText =
+                "Lambda Connection Error";
+        }
+
+    }
+
+
+    /*
+     * =========================================================
+     * DISPLAY DISCONNECT
+     * =========================================================
+     */
+
+    function showDisconnectEvent(
+        conversationId
+    ) {
+
+        const events =
+            document.getElementById(
+                "events"
+            );
+
+
+        events.innerHTML = `
+
+            <div class="event">
+
+                <strong>
+                    🔔 CUSTOMER DISCONNECTED
+                </strong>
+
+                <div class="conversation-id">
+
+                    Conversation ID:
+                    <br>
+
+                    ${conversationId}
+
+                </div>
+
+            </div>
+
+        `;
+
+    }
+
+
+    /*
+     * =========================================================
+     * BEEP
+     * =========================================================
+     */
+
+    let audioContext = null;
+
+
+    function playBeep() {
+
+        try {
+
+            if (!audioContext) {
+
+                audioContext =
+                    new (
+                        window.AudioContext ||
+                        window.webkitAudioContext
+                    )();
+
+            }
+
+
+            if (
+                audioContext.state ===
+                "suspended"
+            ) {
+
+                audioContext.resume();
+
+            }
+
+
+            const oscillator =
+                audioContext.createOscillator();
+
+
+            const gain =
+                audioContext.createGain();
+
+
+            oscillator.type =
+                "sine";
+
+
+            oscillator.frequency.value =
+                1000;
+
+
+            gain.gain.value =
+                0.3;
+
+
+            oscillator.connect(
+                gain
+            );
+
+
+            gain.connect(
+                audioContext.destination
+            );
+
+
+            oscillator.start();
+
+
+            oscillator.stop(
+                audioContext.currentTime +
+                0.3
+            );
+
+
+            console.log(
+                "🔔 Beep played"
+            );
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Beep error:",
+                error
+            );
+
+        }
+
+    }
+
+
+    /*
+     * =========================================================
+     * START POLLING
+     * =========================================================
+     */
+
+    pollLambda();
+
+
+    setInterval(
+        pollLambda,
+        1000
+    );
+
+</script>
+
 </body>
+
 </html>
