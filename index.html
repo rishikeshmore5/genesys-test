@@ -1,1151 +1,2274 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
-    <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
-    <title>Genesys Customer Disconnect Monitor</title>
-
-    <style>
-
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background: #f5f5f5;
-        }
-
-        h1 {
-            color: #333;
-        }
-
-        .card {
-            border: 1px solid #e0e0e0;
-            padding: 20px;
-            width: 420px;
-            border-radius: 8px;
-            background-color: #ffffff;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            margin-top: 20px;
-        }
-
-        .card h3 {
-            margin-top: 0;
-        }
-
-        .card p {
-            margin: 10px 0;
-            font-size: 14px;
-        }
-
-        .label {
-            font-weight: bold;
-            color: #555;
-        }
-
-        .value {
-            color: #0066cc;
-            font-weight: 600;
-            word-break: break-all;
-        }
-
-        .active {
-            color: green !important;
-        }
-
-        .ended {
-            color: red !important;
-        }
-
-        .match {
-            color: green !important;
-            font-weight: bold;
-        }
-
-        .mismatch {
-            color: red !important;
-            font-weight: bold;
-        }
-
-        .beep {
-            color: green !important;
-            font-weight: bold;
-        }
-
-        .waiting {
-            color: #777 !important;
-        }
-
-        .audio-button {
-            margin-top: 15px;
-            padding: 10px 18px;
-            font-size: 14px;
-            background-color: #0066cc;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .audio-button:hover {
-            background-color: #004999;
-        }
-
-        .log-box {
-            margin-top: 20px;
-            width: 420px;
-            background: #111;
-            color: #00ff00;
-            padding: 15px;
-            border-radius: 8px;
-            font-family: monospace;
-            font-size: 12px;
-            height: 180px;
-            overflow-y: auto;
-        }
-
-    </style>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Genesys Cloud CX Certified Professional Practice & Exam Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+  </style>
 </head>
+<body class="bg-slate-100 text-slate-900 font-sans antialiased h-screen flex flex-col">
 
-
-<body>
-
-    <h1>
-        Genesys Call Monitor
-    </h1>
-
-    <p>
-        Customer Disconnect Beep Monitor
-    </p>
-
-
-    <!-- =====================================================
-         CALL DETAILS
-    ====================================================== -->
-
-    <div class="card">
-
-        <h3>
-            Live Call Details
-        </h3>
-
-
-        <p>
-
-            <span class="label">
-                Call State:
-            </span>
-
-            <span
-                id="call-state"
-                class="value waiting">
-
-                Waiting
-
-            </span>
-
-        </p>
-
-
-        <p>
-
-            <span class="label">
-                Conversation ID:
-            </span>
-
-            <span
-                id="conversation-id"
-                class="value">
-
-                Waiting...
-
-            </span>
-
-        </p>
-
-
-        <p>
-
-            <span class="label">
-                Lambda Status:
-            </span>
-
-            <span
-                id="lambda-status"
-                class="value waiting">
-
-                Not Connected
-
-            </span>
-
-        </p>
-
-
-        <p>
-
-            <span class="label">
-                Lambda Conversation ID:
-            </span>
-
-            <span
-                id="lambda-conversation-id"
-                class="value">
-
-                -
-
-            </span>
-
-        </p>
-
-
-        <p>
-
-            <span class="label">
-                ID Comparison:
-            </span>
-
-            <span
-                id="comparison-status"
-                class="value waiting">
-
-                Waiting
-
-            </span>
-
-        </p>
-
-
-        <p>
-
-            <span class="label">
-                Beep Status:
-            </span>
-
-            <span
-                id="beep-status"
-                class="value waiting">
-
-                Not Played
-
-            </span>
-
-        </p>
-
-
-        <button
-            id="audio-button"
-            class="audio-button"
-            onclick="enableAudio()">
-
-            Enable Audio
-
+  <!-- Mode Selection Modal / Screen -->
+  <div id="mode-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-8 shadow-2xl border border-slate-200 text-center">
+      <div class="h-14 w-14 bg-indigo-600 rounded-2xl flex items-center justify-center text-white font-extrabold text-2xl mx-auto mb-4 shadow-md">G</div>
+      <h2 class="text-2xl font-bold text-slate-800 mb-2">Genesys Cloud CX (GCP-GCX)</h2>
+      <p class="text-sm text-slate-500 mb-8">Select your preparation mode to begin testing:</p>
+      
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
+        <button onclick="startApp('practice')" class="p-5 rounded-xl border-2 border-indigo-200 hover:border-indigo-600 hover:bg-indigo-50/50 transition flex flex-col justify-between group">
+          <div>
+            <span class="inline-block px-2.5 py-0.5 bg-indigo-100 text-indigo-700 font-bold text-xs rounded-full mb-2">PRACTICE MODE</span>
+            <h3 class="font-bold text-slate-800 group-hover:text-indigo-600 transition">Interactive Learning</h3>
+            <p class="text-xs text-slate-500 mt-2">Includes all 120+ questions with immediate right/wrong feedback and live explanations.</p>
+          </div>
+          <span class="text-xs font-semibold text-indigo-600 mt-4 inline-block">Start Practice →</span>
         </button>
 
+        <button onclick="startApp('exam')" class="p-5 rounded-xl border-2 border-slate-200 hover:border-emerald-600 hover:bg-emerald-50/50 transition flex flex-col justify-between group">
+          <div>
+            <span class="inline-block px-2.5 py-0.5 bg-emerald-100 text-emerald-700 font-bold text-xs rounded-full mb-2">EXAM MODE</span>
+            <h3 class="font-bold text-slate-800 group-hover:text-emerald-600 transition">Timed Simulation</h3>
+            <p class="text-xs text-slate-500 mt-2">120-minute timed exam simulation. Feedback and score breakdown shown only upon final submission.</p>
+          </div>
+          <span class="text-xs font-semibold text-emerald-600 mt-4 inline-block">Start Exam →</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Header -->
+  <header class="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between shadow-sm flex-shrink-0">
+    <div class="flex items-center gap-3">
+      <div class="h-8 w-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">G</div>
+      <div>
+        <h1 class="font-bold text-slate-800 text-base leading-tight">Genesys Cloud CX Certified Professional</h1>
+        <p class="text-xs text-slate-500">
+          <span id="header-mode-badge" class="font-semibold uppercase tracking-wider text-indigo-600">Practice Mode</span> • <span id="total-q-count">0</span> Questions
+        </p>
+      </div>
+    </div>
+    <div class="flex items-center gap-4">
+      <button onclick="location.reload()" class="text-xs text-slate-500 hover:text-indigo-600 font-medium px-3 py-1.5 rounded-lg border border-slate-200">
+        Switch Mode
+      </button>
+      <div class="text-right" id="timer-box">
+        <span class="text-xs text-slate-500 font-medium block">TIME REMAINING</span>
+        <span id="timer" class="font-mono text-xl font-bold text-indigo-600">120:00</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <div class="flex flex-1 overflow-hidden" id="exam-container">
+    
+    <!-- Sidebar Navigation Palette -->
+    <aside class="w-80 bg-white border-r border-slate-200 p-5 flex flex-col justify-between flex-shrink-0">
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Question Palette</h2>
+          <span class="text-xs text-slate-500 font-mono" id="palette-progress">0/0</span>
+        </div>
+        
+        <div id="palette-grid" class="grid grid-cols-5 gap-2 max-h-[55vh] overflow-y-auto pr-1 custom-scrollbar">
+          <!-- Populated by JS -->
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-slate-100 text-xs space-y-1.5">
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 bg-indigo-600 rounded-sm"></span>
+            <span class="text-slate-600">Answered</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 bg-amber-400 rounded-sm"></span>
+            <span class="text-slate-600">Flagged for Review</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 bg-slate-200 rounded-sm"></span>
+            <span class="text-slate-600">Unanswered</span>
+          </div>
+        </div>
+      </div>
+
+      <button id="submit-btn" onclick="openSubmitModal()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-lg shadow-sm transition">
+        Finish & View Summary
+      </button>
+    </aside>
+
+    <!-- Question Canvas -->
+    <main class="flex-1 flex flex-col justify-between p-8 overflow-y-auto custom-scrollbar" id="question-area">
+      <div class="max-w-3xl mx-auto w-full">
+        <div class="flex justify-between items-center mb-6">
+          <span id="domain-badge" class="px-3 py-1 bg-indigo-50 text-indigo-700 text-xs font-semibold rounded-full border border-indigo-100">
+            <!-- Domain Name -->
+          </span>
+          <button id="flag-btn" onclick="toggleFlag()" class="text-sm font-medium px-3.5 py-1.5 rounded-md border border-slate-300 text-slate-600 hover:bg-slate-50 transition flex items-center gap-1.5">
+            <span id="flag-icon">☆</span>
+            <span id="flag-text">Flag for Review</span>
+          </button>
+        </div>
+
+        <div class="mb-6">
+          <h2 id="question-header" class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">
+            Question 1
+          </h2>
+          <p id="question-prompt" class="text-lg font-medium text-slate-800 leading-relaxed">
+            <!-- Question text -->
+          </p>
+          <p id="selection-hint" class="text-xs text-indigo-600 font-semibold mt-2 hidden">
+            <!-- Hint -->
+          </p>
+        </div>
+
+        <!-- Options Container -->
+        <div id="options-container" class="space-y-3">
+          <!-- Options rendered dynamically -->
+        </div>
+
+        <!-- Real-Time Practice Feedback Card -->
+        <div id="practice-feedback" class="mt-6 p-5 rounded-xl border hidden">
+          <div class="flex items-center gap-2 font-bold text-sm mb-2" id="feedback-badge"></div>
+          <p class="text-xs text-slate-700 leading-relaxed" id="feedback-text"></p>
+        </div>
+      </div>
+
+      <!-- Action Footer Navigation -->
+      <div class="max-w-3xl mx-auto w-full pt-6 mt-8 border-t border-slate-200 flex justify-between">
+        <button id="prev-btn" onclick="prevQuestion()" class="px-6 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg transition disabled:opacity-40 disabled:cursor-not-allowed">
+          Previous
+        </button>
+        <button id="next-btn" onclick="nextQuestion()" class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition disabled:opacity-40 disabled:cursor-not-allowed">
+          Next
+        </button>
+      </div>
+    </main>
+  </div>
+
+  <!-- Results Summary View -->
+  <div id="results-view" class="hidden flex-1 overflow-y-auto p-8 max-w-4xl mx-auto w-full custom-scrollbar">
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-8 mb-6">
+      <div class="text-center pb-6 border-b border-slate-200">
+        <h2 class="text-2xl font-bold text-slate-800">Exam Results Summary</h2>
+        <p class="text-sm text-slate-500 mt-1">Genesys Cloud CX Certified Professional</p>
+        <div class="mt-4 inline-flex items-center gap-4 px-6 py-3 rounded-xl" id="verdict-banner">
+          <span class="text-3xl font-extrabold" id="total-score-pct">0%</span>
+          <div class="text-left">
+            <span class="text-xs font-bold uppercase tracking-wider block" id="pass-status">FAILED</span>
+            <span class="text-xs text-slate-500">Passing Score: 65%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Domain Performance Breakdown -->
+      <div class="mt-6">
+        <h3 class="text-sm font-semibold text-slate-700 uppercase tracking-wider mb-4">Domain Performance</h3>
+        <div id="domain-results" class="space-y-3">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
     </div>
 
-
-    <!-- =====================================================
-         DEBUG LOG
-    ====================================================== -->
-
-    <div
-        id="debug-log"
-        class="log-box">
-
-        Starting monitor...
-
+    <!-- Review Key Section -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
+      <h3 class="text-lg font-bold text-slate-800 mb-6">Question Explanations & Key</h3>
+      <div id="review-container" class="space-y-6">
+        <!-- Populated dynamically -->
+      </div>
+      <div class="mt-8 text-center">
+        <button onclick="location.reload()" class="px-6 py-2.5 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition">
+          Back to Mode Selection
+        </button>
+      </div>
     </div>
+  </div>
 
+  <!-- Submit Confirmation Modal -->
+  <div id="submit-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50">
+    <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl border border-slate-200">
+      <h3 class="text-lg font-bold text-slate-900 mb-2">Confirm Submission</h3>
+      <p id="modal-summary" class="text-sm text-slate-600 mb-6 leading-relaxed">
+        Are you sure you want to finish the session?
+      </p>
+      <div class="flex justify-end gap-3">
+        <button onclick="closeSubmitModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-medium transition">
+          Continue
+        </button>
+        <button onclick="calculateResults()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-semibold transition">
+          Submit & Finish
+        </button>
+      </div>
+    </div>
+  </div>
 
-<script>
+  <script>
+    // Complete questions dataset from the provided files
+    const allQuestionsData = [
+      {
+        id: "q1",
+        domain: "Roles & Permissions",
+        type: "single",
+        prompt: "Which of the following entities is used to ensure that people within your organization have the rights and permissions that they need within Genesys Cloud CX?",
+        options: [
+          { id: "a", text: "Workgroups" },
+          { id: "b", text: "Rooms" },
+          { id: "c", text: "Groups" },
+          { id: "d", text: "Roles" }
+        ],
+        correct: ["d"],
+        explanation: "Roles define permissions and access controls assigned to users within Genesys Cloud CX."
+      },
+      {
+        id: "q2",
+        domain: "Integrations & Clients",
+        type: "single",
+        prompt: "Genesys Cloud CX supports embedded clients for Salesforce and Zendesk.",
+        options: [
+          { id: "a", text: "True" },
+          { id: "b", text: "False" }
+        ],
+        correct: ["a"],
+        explanation: "Genesys Cloud provides dedicated embedded client integrations for both Salesforce and Zendesk."
+      },
+      {
+        id: "q3",
+        domain: "Routing & ACD",
+        type: "multiple",
+        maxSelections: 3,
+        prompt: "Which of the following are AND Evaluation Methods? (Choose three.)",
+        options: [
+          { id: "a", text: "All skills matching" },
+          { id: "b", text: "Best available skills" },
+          { id: "c", text: "Bullseye matching" },
+          { id: "d", text: "Disregard skills" },
+          { id: "e", text: "Agent availability" }
+        ],
+        correct: ["a", "b", "d"],
+        explanation: "AND evaluation methods in ACD routing include All skills matching, Best available skills, and Disregard skills."
+      },
+      {
+        id: "q4",
+        domain: "Queues & Groups",
+        type: "single",
+        prompt: "What is the distinguishing feature between queues and groups?",
+        options: [
+          { id: "a", text: "Queues can have agents as members, while groups cannot." },
+          { id: "b", text: "Both queues and groups have the same ACD capabilities." },
+          { id: "c", text: "Unlike groups, queues allow for more complex scenarios like skill-based routing." },
+          { id: "d", text: "Queues can be used in Architect flows, while groups cannot." }
+        ],
+        correct: ["c"],
+        explanation: "Queues offer full ACD routing, skill evaluation, and SLA tracking, whereas groups are simple collections of users."
+      },
+      {
+        id: "q5",
+        domain: "Routing & ACD",
+        type: "multiple",
+        maxSelections: 2,
+        prompt: "Select the categories of ACD skills that can be added to a user or an interaction. (Choose two.)",
+        options: [
+          { id: "a", text: "Language" },
+          { id: "b", text: "Roles" },
+          { id: "c", text: "Skills" },
+          { id: "d", text: "Queue" }
+        ],
+        correct: ["a", "c"],
+        explanation: "The two categories of ACD skills that can be assigned to users or interactions are Skills and Languages."
+      },
+      {
+        id: "q6",
+        domain: "Utilization & Routing",
+        type: "single",
+        prompt: "Which feature enables a voice interaction to interrupt an email interaction?",
+        options: [
+          { id: "a", text: "Utilization" },
+          { id: "b", text: "ACD Skills" },
+          { id: "c", text: "Emergency Routing" },
+          { id: "d", text: "Scripts" }
+        ],
+        correct: ["a"],
+        explanation: "Interaction Utilization settings define media channel concurrency and allow voice calls to interrupt lower-priority asynchronous interactions like email."
+      },
+      {
+        id: "q7",
+        domain: "Routing & ACD",
+        type: "single",
+        prompt: "Bullseye routing method relaxes the required skills as the selection pool expands from one ring to the next. What is the maximum number of rings that can be defined for Bullseye routing?",
+        options: [
+          { id: "a", text: "8" },
+          { id: "b", text: "6" },
+          { id: "c", text: "4" },
+          { id: "d", text: "2" }
+        ],
+        correct: ["b"],
+        explanation: "Bullseye routing supports up to 6 rings to progressively broaden the agent selection pool."
+      },
+      {
+        id: "q8",
+        domain: "Roles & Licensing",
+        type: "single",
+        prompt: "The license used by a user is determined by the permissions enabled in the roles assigned to that user.",
+        options: [
+          { id: "a", text: "True" },
+          { id: "b", text: "False" }
+        ],
+        correct: ["a"],
+        explanation: "In Genesys Cloud, licenses are automatically assigned and billed based on active permissions granted by user roles."
+      },
+      {
+        id: "q9",
+        domain: "Roles & Licensing",
+        type: "single",
+        prompt: "Which role is automatically assigned to a new user?",
+        options: [
+          { id: "a", text: "User" },
+          { id: "b", text: "Communicate - User" },
+          { id: "c", text: "admin" },
+          { id: "d", text: "employee" }
+        ],
+        correct: ["d"],
+        explanation: "Every new user provisioned in Genesys Cloud receives the default 'employee' role."
+      },
+      {
+        id: "q10",
+        domain: "Architect & Flow Design",
+        type: "multiple",
+        maxSelections: 3,
+        prompt: "Select the features available in Genesys Cloud CX Architect. (Choose three.)",
+        options: [
+          { id: "a", text: "Play pre-recorded messages" },
+          { id: "b", text: "Convert text to speech" },
+          { id: "c", text: "Configure queues" },
+          { id: "d", text: "Create skills" },
+          { id: "e", text: "Receive and route calls" }
+        ],
+        correct: ["a", "b", "e"],
+        explanation: "Architect plays audio, renders TTS audio, and routes incoming calls. Queues and skills are configured in the Admin menu."
+      },
+      {
+        id: "q11",
+        domain: "Architect & Flow Design",
+        type: "multiple",
+        maxSelections: 2,
+        prompt: "Select the categories of Prompts in Architect. (Choose two.)",
+        options: [
+          { id: "a", text: "User" },
+          { id: "b", text: "Menu" },
+          { id: "c", text: "Data" },
+          { id: "d", text: "System" }
+        ],
+        correct: ["a", "d"],
+        explanation: "Prompts in Architect are divided into User Prompts and System Prompts."
+      },
+      {
+        id: "q12",
+        domain: "Scripts",
+        type: "single",
+        prompt: "Which of the following statements about scripts is true?",
+        options: [
+          { id: "a", text: "Scripts can be used for inbound interactions only." },
+          { id: "b", text: "Scripts are only used to configure flows when setting up Architect." },
+          { id: "c", text: "Scripts can be used in all types of interactions." },
+          { id: "d", text: "Scripts may be used for outbound dialing campaigns only." }
+        ],
+        correct: ["c"],
+        explanation: "Scripts support inbound calls, outbound campaigns, callbacks, emails, and web chats."
+      },
+      {
+        id: "q13",
+        domain: "Scripts",
+        type: "multiple",
+        maxSelections: 4,
+        prompt: "Which of the following components can be added to scripts? (Choose four.)",
+        options: [
+          { id: "a", text: "Visual Basic Control" },
+          { id: "b", text: "Text" },
+          { id: "c", text: "Call Flow" },
+          { id: "d", text: "Checkbox" },
+          { id: "e", text: "Web Page" },
+          { id: "f", text: "Image" }
+        ],
+        correct: ["b", "d", "e", "f"],
+        explanation: "Script designer components include Text blocks, Checkboxes, Embedded Web Pages, and Images."
+      },
+      {
+        id: "q14",
+        domain: "Workforce Management",
+        type: "single",
+        prompt: "Which of the following Genesys Cloud CX features helps ensure that enough agents are in the right place at the right time?",
+        options: [
+          { id: "a", text: "Routing" },
+          { id: "b", text: "Queue Management" },
+          { id: "c", text: "Workforce Management" },
+          { id: "d", text: "Reporting and Analytics" }
+        ],
+        correct: ["c"],
+        explanation: "Workforce Management (WFM) optimizes agent scheduling, forecasting, and adherence."
+      },
+      {
+        id: "q15",
+        domain: "Quality Management",
+        type: "single",
+        prompt: "Which of the following is NOT a Quality Management feature?",
+        options: [
+          { id: "a", text: "Evaluation Forms" },
+          { id: "b", text: "Policies" },
+          { id: "c", text: "Scheduling" },
+          { id: "d", text: "Interaction Recording" }
+        ],
+        correct: ["c"],
+        explanation: "Scheduling belongs to Workforce Management (WFM), whereas QM encompasses Recording, Policies, and Evaluations."
+      },
+      {
+        id: "q16",
+        domain: "Telephony & Recording",
+        type: "single",
+        prompt: "Where are Genesys Cloud CX call recordings stored by default?",
+        options: [
+          { id: "a", text: "Edges" },
+          { id: "b", text: "Cloud" },
+          { id: "c", text: "Web Service" },
+          { id: "d", text: "AWS Cloud" }
+        ],
+        correct: ["d"],
+        explanation: "Call recordings are encrypted and stored in Amazon Web Services (AWS) Cloud storage by default."
+      },
+      {
+        id: "q17",
+        domain: "Quality Management",
+        type: "single",
+        prompt: "Which of the following statements defines a critical question in an Evaluation Form?",
+        options: [
+          { id: "a", text: "Critical questions are used to prioritize questions that are critical to the success of an interaction. A separate critical score is calculated for critical questions." },
+          { id: "b", text: "Critical questions are questions that the agent must answer." },
+          { id: "c", text: "Critical questions are multiple choice questions that have a higher weightage than non-critical questions." },
+          { id: "d", text: "If answered 'No', critical questions will result in an evaluation score of zero for the interaction." }
+        ],
+        correct: ["a"],
+        explanation: "Critical questions prioritize mandatory compliance criteria and output a distinct critical evaluation score."
+      },
+      {
+        id: "q18",
+        domain: "Workforce Management",
+        type: "multiple",
+        maxSelections: 3,
+        prompt: "Which functionalities are available in Genesys Cloud CX WFM? (Choose three.)",
+        options: [
+          { id: "a", text: "Short-Term Forecasts" },
+          { id: "b", text: "Schedules" },
+          { id: "c", text: "Long-Term Forecasts" },
+          { id: "d", text: "Forecast simulator" }
+        ],
+        correct: ["a", "b", "c"],
+        explanation: "Genesys Cloud WFM provides Short-Term Forecasts, Long-Term Forecasts, and Automated Staff Schedules."
+      },
+      {
+        id: "q19",
+        domain: "Quality Management",
+        type: "single",
+        prompt: "Which of the following types of interactions can be configured for Recording Policies?",
+        options: [
+          { id: "a", text: "Call" },
+          { id: "b", text: "Chat" },
+          { id: "c", text: "Email" },
+          { id: "d", text: "Message" },
+          { id: "e", text: "All of the above" }
+        ],
+        correct: ["e"],
+        explanation: "Recording Policies can be configured across voice calls, web chats, inbound/outbound emails, and asynchronous messaging."
+      },
+      {
+        id: "q20",
+        domain: "Roles & Administration",
+        type: "single",
+        prompt: "Which user role is required to perform the deployment and installation of the Genesys Cloud CX organization?",
+        options: [
+          { id: "a", text: "Supervisor" },
+          { id: "b", text: "admin" },
+          { id: "c", text: "employee" },
+          { id: "d", text: "User" }
+        ],
+        correct: ["b"],
+        explanation: "The default 'admin' role provides all necessary permissions to deploy, configure, and install organization resources."
+      },
+      {
+        id: "q21",
+        domain: "Documents & Workspaces",
+        type: "single",
+        prompt: "Files uploaded to the workspace can be shared with non-members of the Genesys Cloud CX organization.",
+        options: [
+          { id: "a", text: "True" },
+          { id: "b", text: "False" }
+        ],
+        correct: ["a"],
+        explanation: "Workspace files can be shared externally with non-members using secure public web links if permitted."
+      },
+      {
+        id: "q22",
+        domain: "Platform Architecture",
+        type: "multiple",
+        maxSelections: 3,
+        prompt: "Which of the following add-on options are provided in Genesys Cloud CX? (Choose three.)",
+        options: [
+          { id: "a", text: "AI" },
+          { id: "b", text: "VR" },
+          { id: "c", text: "Digital" },
+          { id: "d", text: "Human Capital Management" },
+          { id: "e", text: "Workforce Engagement" }
+        ],
+        correct: ["a", "c", "e"],
+        explanation: "Genesys Cloud CX offers AI Experience, Digital Channels, and Workforce Engagement Management (WEM) add-ons."
+      },
+      {
+        id: "q23",
+        domain: "Collaborate & Profiles",
+        type: "single",
+        prompt: "Why is it essential to have employees complete their profile information in Genesys Cloud?",
+        options: [
+          { id: "a", text: "Searches performed in the Genesys Cloud CX suite use information in the profile to return appropriate results." },
+          { id: "b", text: "The education information can be verified against the human resources database." },
+          { id: "c", text: "The profile information can be used to keep LinkedIn details updated." },
+          { id: "d", text: "When employees have free time, they can review biographies of their peers." }
+        ],
+        correct: ["a"],
+        explanation: "Directory search queries use profile keywords, locations, departments, and skills to find internal resources."
+      },
+      {
+        id: "q24",
+        domain: "Administration & Security",
+        type: "single",
+        prompt: "Which feature requires at least one single sign-on (SSO) integration to be configured before allowing a user to login to Genesys Cloud CX?",
+        options: [
+          { id: "a", text: "Disable Location Detection" },
+          { id: "b", text: "Password Expiration" },
+          { id: "c", text: "Disable Genesys Cloud CX Login" },
+          { id: "d", text: "Open Admission" }
+        ],
+        correct: ["c"],
+        explanation: "Disabling default Genesys Cloud credentials enforces organizational SSO authentication across all users."
+      },
+      {
+        id: "q25",
+        domain: "Administration & Users",
+        type: "single",
+        prompt: "You added 53 employees, and John Camper has emailed stating he did not receive his invitation. What is the best step?",
+        options: [
+          { id: "a", text: "Resend the invite." },
+          { id: "b", text: "Add John to Genesys Cloud CX again so that a new invitation will be generated." },
+          { id: "c", text: "Submit a ticket to Genesys Cloud CX support." },
+          { id: "d", text: "Tell John to be patient and wait for the email to arrive." }
+        ],
+        correct: ["a"],
+        explanation: "Administrators can quickly re-trigger onboarding emails by selecting 'Resend Invite' from the user profile."
+      },
+      {
+        id: "q26",
+        domain: "Administration & Users",
+        type: "single",
+        prompt: "Amelia is changing departments and has a new manager. What steps should you take to update her reporting structure in Genesys Cloud?",
+        options: [
+          { id: "a", text: "Do nothing. Genesys Cloud CX will update everything automatically." },
+          { id: "b", text: "Update her manager in her profile. Genesys Cloud CX will automatically update her place in the hierarchy." },
+          { id: "c", text: "Update her peers. Genesys Cloud CX will then update her manager automatically." },
+          { id: "d", text: "Update her manager and her peers in her profile." }
+        ],
+        correct: ["b"],
+        explanation: "Updating an employee's direct manager dynamically reconstructs the organizational hierarchy chart."
+      },
+      {
+        id: "q27",
+        domain: "Collaborate & Workspaces",
+        type: "single",
+        prompt: "Which setting allows you to create a place for each group in your organization to upload, organize, and share documents and files?",
+        options: [
+          { id: "a", text: "Workspaces" },
+          { id: "b", text: "People" },
+          { id: "c", text: "Queues" },
+          { id: "d", text: "Groups" }
+        ],
+        correct: ["a"],
+        explanation: "Workspaces provide dedicated content repositories for teams to manage and collaborate on files."
+      },
+      {
+        id: "q28",
+        domain: "Administration & Notifications",
+        type: "single",
+        prompt: "If you have not configured an email address to report issues to, Genesys Cloud CX:",
+        options: [
+          { id: "a", text: "Automatically creates an email address and routes all such emails to this address." },
+          { id: "b", text: "Does not route the emails to any email address." },
+          { id: "c", text: "Sends the emails to anyone who has the admin role assigned in your organization." },
+          { id: "d", text: "Collects such emails and stores it until an email address to report issues is configured." }
+        ],
+        correct: ["c"],
+        explanation: "Unconfigured support routing defaults system notifications directly to all designated Organization Administrators."
+      },
+      {
+        id: "q29",
+        domain: "Telephony & Extensions",
+        type: "single",
+        prompt: "To assign extensions to users, you must first ________.",
+        options: [
+          { id: "a", text: "Create a pool of extensions." },
+          { id: "b", text: "Buy the extension number from the carrier." },
+          { id: "c", text: "Add the extension to the dial plan." },
+          { id: "d", text: "Assign the extension to the user's phone." }
+        ],
+        correct: ["a"],
+        explanation: "An extension pool defining valid numerical ranges must exist prior to individual extension allocation."
+      },
+      {
+        id: "q30",
+        domain: "Telephony & Edge",
+        type: "multiple",
+        maxSelections: 3,
+        prompt: "Which of the following statements are true regarding the Genesys Cloud CX Edge appliance? (Choose three.)",
+        options: [
+          { id: "a", text: "It manages connections between your phones, SIP trunks, telephony gateways, Genesys Cloud CX, and third-party systems." },
+          { id: "b", text: "It provides core telephony services." },
+          { id: "c", text: "It provides for the integration of Active Directory, SharePoint, and other third-party data." },
+          { id: "d", text: "It manages the Genesys Cloud CX platform services." },
+          { id: "e", text: "It operates as a provisioning server, media server, SIP proxy, and SIP gateway." }
+        ],
+        correct: ["a", "b", "e"],
+        explanation: "Edge appliances handle local media, SIP registration, gateway connectivity, and call routing."
+      },
+      {
+        id: "q31",
+        domain: "Telephony & Trunks",
+        type: "multiple",
+        maxSelections: 3,
+        prompt: "When creating an external trunk, which of the following protocol(s) can be selected? (Choose three.)",
+        options: [
+          { id: "a", text: "The default protocol" },
+          { id: "b", text: "TCP" },
+          { id: "c", text: "TLS" },
+          { id: "d", text: "SIP" },
+          { id: "e", text: "UDP" }
+        ],
+        correct: ["b", "c", "e"],
+        explanation: "Genesys Cloud SIP trunking supports standard TCP, TLS (encrypted), and UDP transport protocols."
+      },
+      {
+        id: "q32",
+        domain: "Telephony & BYOC",
+        type: "single",
+        prompt: "You need to order trunks for deployment. Where can you find guidelines on PSTN carrier requirements?",
+        options: [
+          { id: "a", text: "By asking your carrier what you would need." },
+          { id: "b", text: "On the PSTN carrier's web site." },
+          { id: "c", text: "Get a default trunk line installed." },
+          { id: "d", text: "In the Genesys Cloud CX Resource Center." }
+        ],
+        correct: ["d"],
+        explanation: "Carrier specifications and BYOC interoperability guides are published in the official Resource Center."
+      },
+      {
+        id: "q33",
+        domain: "Telephony & Edge",
+        type: "single",
+        prompt: "Which of the following Edge features provides client and server-side call matching?",
+        options: [
+          { id: "a", text: "SIP gateway" },
+          { id: "b", text: "SIP proxy" },
+          { id: "c", text: "Media server" },
+          { id: "d", text: "Call broker" }
+        ],
+        correct: ["b"],
+        explanation: "The Edge SIP Proxy handles session matching, registration, and request dispatching across SIP endpoints."
+      },
+      {
+        id: "q34",
+        domain: "Communicate",
+        type: "single",
+        prompt: "What additional functionality does Communicate bring to Genesys Cloud CX?",
+        options: [
+          { id: "a", text: "Knowledge-based features, such as FAQs and communities." },
+          { id: "b", text: "Unified communications features, such as telephony, unified messaging, voice conferencing, and auto-attendant." },
+          { id: "c", text: "Call center features, such as ACD and scripting." },
+          { id: "d", text: "Directory capabilities, such as advanced search, profiles, and keyword searching." }
+        ],
+        correct: ["b"],
+        explanation: "Communicate delivers enterprise UC telephony, IVR auto-attendants, conferencing, and visual voicemail."
+      },
+      {
+        id: "q35",
+        domain: "Telephony & High Availability",
+        type: "single",
+        prompt: "In an N+1 Edge configuration, if an Edge fails, what does this configuration ensure you can do?",
+        options: [
+          { id: "a", text: "Place and receive both ACD and non-ACD calls." },
+          { id: "b", text: "Place ACD and non-ACD calls, but not receive." },
+          { id: "c", text: "Receive ACD and non-ACD calls, but not place." },
+          { id: "d", text: "Place and receive ACD calls; non-ACD calls can neither be placed nor received." }
+        ],
+        correct: ["a"],
+        explanation: "N+1 edge redundancy provides full active-active failover for both inbound and outbound ACD and business calls."
+      },
+      {
+        id: "q36",
+        domain: "Telephony",
+        type: "single",
+        prompt: "Genesys Cloud CX Voice is ________.",
+        options: [
+          { id: "a", text: "A third-party service that provides external Phone Trunks." },
+          { id: "b", text: "A help bot that is available within Genesys Cloud CX chat." },
+          { id: "c", text: "Another name for Genesys Cloud CX." },
+          { id: "d", text: "An internet-based telephony service that can be purchased and activated for use with Genesys Cloud CX." }
+        ],
+        correct: ["d"],
+        explanation: "Genesys Cloud Voice is Genesys' native cloud carrier service offering 100% cloud-managed telephony."
+      },
+      {
+        id: "q37",
+        domain: "Telephony & Redundancy",
+        type: "single",
+        prompt: "Phone redundancy extends to include call survivability - Even when connection to the Edge is lost, it prevents active calls from disconnecting.",
+        options: [
+          { id: "a", text: "True" },
+          { id: "b", text: "False" }
+        ],
+        correct: ["b"],
+        explanation: "Losing physical signaling/media connectivity to an Edge drops the live active call leg."
+      },
+      {
+        id: "q38",
+        domain: "Communicate & Calls",
+        type: "multiple",
+        maxSelections: 2,
+        prompt: "What are the two methods to create a conference call in Genesys Cloud CX? (Choose two.)",
+        options: [
+          { id: "a", text: "With multiple active calls, click and drag an unselected call onto the previously selected call details." },
+          { id: "b", text: "Click the Calls icon, expand Dialpad, enter attendee names/numbers and click Start Conference." },
+          { id: "c", text: "Click the Conference button in Genesys Cloud CX directory, and then enter attendee details." },
+          { id: "d", text: "Have all attendees call you. When all calls are active, click the Start Conference button." }
+        ],
+        correct: ["a", "d"],
+        explanation: "Conferences can be established by merging calls via drag-and-drop or using Start Conference across active calls."
+      },
+      {
+        id: "q39",
+        domain: "Telephony & WebRTC",
+        type: "single",
+        prompt: "Which of the following statements about WebRTC phones is incorrect?",
+        options: [
+          { id: "a", text: "Genesys Cloud CX WebRTC phone runs in the browser." },
+          { id: "b", text: "A WebRTC phone has no additional hardware or software requirements, apart from a supported browser." },
+          { id: "c", text: "It is assigned to a specific user and only that user has permission to use the phone." },
+          { id: "d", text: "A WebRTC phone can be used even when disconnected from the Cloud." }
+        ],
+        correct: ["d"],
+        explanation: "WebRTC phones require active, continuous websocket and media signaling connections to Genesys Cloud."
+      },
+      {
+        id: "q40",
+        domain: "Telephony & Number Plans",
+        type: "single",
+        prompt: "In Genesys Cloud CX, you can prevent users from calling U.S. premium-rate numbers by:",
+        options: [
+          { id: "a", text: "Specifying the premium-rate numbers you would like to restrict access to, while subscribing to Genesys Cloud CX." },
+          { id: "b", text: "Creating a number-plan to identify premium-rate numbers." },
+          { id: "c", text: "Manually training users to prevent calling premium-rate numbers." },
+          { id: "d", text: "Configuring trunks to identify premium-rate numbers." }
+        ],
+        correct: ["b"],
+        explanation: "Administrators create Dial/Number Plans with classification rules to block specific dialing patterns such as 1-900 numbers."
+      },
+      {
+        id: "q41",
+        domain: "Telephony & Edge",
+        type: "single",
+        prompt: "Which of the following Edge features contains the built-in remote survivability mode?",
+        options: [
+          { id: "a", text: "SIP gateway" },
+          { id: "b", text: "Call broker" },
+          { id: "c", text: "SIP proxy" },
+          { id: "d", text: "Disaster recovery" }
+        ],
+        correct: ["d"],
+        explanation: "Disaster recovery capabilities on premises Edges provide site-level survivability during WAN outages."
+      },
+      {
+        id: "q42",
+        domain: "Telephony & Edge",
+        type: "single",
+        prompt: "All of the following are steps required to configure an Edge appliance, EXCEPT:",
+        options: [
+          { id: "a", text: "Create a Site" },
+          { id: "b", text: "Assign the Edge to a Site" },
+          { id: "c", text: "Configure a trunk" },
+          { id: "d", text: "Create an Edge Group" },
+          { id: "e", text: "Associate the network interface" },
+          { id: "f", text: "Authenticate the Edge" },
+          { id: "g", text: "Configure the Edge Connectors" }
+        ],
+        correct: ["g"],
+        explanation: "There is no 'Edge Connectors' configuration entity in standard Genesys Edge appliance setup."
+      },
+      {
+        id: "q43",
+        domain: "Telephony & Phones",
+        type: "single",
+        prompt: "What binds the phone's settings in Genesys Cloud CX to a physical phone?",
+        options: [
+          { id: "a", text: "Phone model" },
+          { id: "b", text: "Base settings" },
+          { id: "c", text: "Phone name" },
+          { id: "d", text: "Hardware ID (MAC address)" }
+        ],
+        correct: ["d"],
+        explanation: "The unique hardware MAC address identifies and binds physical SIP phones to their cloud provisioning profile."
+      },
+      {
+        id: "q44",
+        domain: "Analytics & Reports",
+        type: "single",
+        prompt: "Which report displays the number of interactions handled by an agent per day?",
+        options: [
+          { id: "a", text: "Agent Metrics Export Report" },
+          { id: "b", text: "Agent Metrics Report" },
+          { id: "c", text: "Agent Login-Logout Details Report" },
+          { id: "d", text: "Agent Quality Details Report" }
+        ],
+        correct: ["b"],
+        explanation: "The Agent Metrics Report displays summary interaction counts, talk time, and handle metrics by agent per day."
+      },
+      {
+        id: "q45",
+        domain: "Analytics & Reports",
+        type: "single",
+        prompt: "Unused reports need to be disabled manually to prevent unnecessary load on the system.",
+        options: [
+          { id: "a", text: "True" },
+          { id: "b", text: "False" }
+        ],
+        correct: ["b"],
+        explanation: "Reports run on-demand or on explicit schedules without consuming ongoing background server overhead."
+      },
+      {
+        id: "q46",
+        domain: "Analytics & Reports",
+        type: "single",
+        prompt: "User Status Detail report includes specifics about queue activity such as interacting, idle, and not responding.",
+        options: [
+          { id: "a", text: "True" },
+          { id: "b", text: "False" }
+        ],
+        correct: ["a"],
+        explanation: "The User Status Detail Report gives a granular timeline of user presence, routing status, and idle/interacting states."
+      },
+      {
+        id: "q47",
+        domain: "Analytics & Metrics",
+        type: "single",
+        prompt: "Which metric represents the average amount of time an interaction waits in queue before an agent answers it?",
+        options: [
+          { id: "a", text: "Average Handle Time" },
+          { id: "b", text: "Average Speed of Answer" },
+          { id: "c", text: "After Call Work" },
+          { id: "d", text: "Average Talk Time" }
+        ],
+        correct: ["b"],
+        explanation: "Average Speed of Answer (ASA) measures queue waiting duration prior to agent pickup."
+      },
+      {
+        id: "q48",
+        domain: "Analytics & Reports",
+        type: "multiple",
+        maxSelections: 2,
+        prompt: "Select the factors which can cause report generation failures and increased runtimes. (Choose two.)",
+        options: [
+          { id: "a", text: "Adjusting report parameters in order to include fewer agents, queues, and interactions." },
+          { id: "b", text: "Running reports during peak hours." },
+          { id: "c", text: "Reviewing and ensuring the usage of scheduled reports." },
+          { id: "d", text: "Asking every team member to run and save a copy of the report." }
+        ],
+        correct: ["b", "d"],
+        explanation: "Redundant manual queries and pulling wide date ranges during peak traffic spikes increase reporting latency."
+      },
+      {
+        id: "q49",
+        domain: "Analytics & Reports",
+        type: "single",
+        prompt: "Which report would you run to view an agent's time on breaks and login/logout details?",
+        options: [
+          { id: "a", text: "Interaction Details Report" },
+          { id: "b", text: "User Status Detail Report" },
+          { id: "c", text: "Agent Metrics Report" },
+          { id: "d", text: "Queue Metrics Daily Report" }
+        ],
+        correct: ["b"],
+        explanation: "The User Status Detail Report provides an exact log of every status change, meal, break, and idle duration."
+      },
+      {
+        id: "q50",
+        domain: "Analytics & Performance",
+        type: "single",
+        prompt: "Which performance view helps an admin track agents handling customer service calls to estimate Average Handling Time?",
+        options: [
+          { id: "a", text: "Documents" },
+          { id: "b", text: "Directory" },
+          { id: "c", text: "Activity" },
+          { id: "d", text: "Workspaces" }
+        ],
+        correct: ["c"],
+        explanation: "The Performance > Activity views provide real-time and historical agent metric tracking."
+      },
+      {
+        id: "q51",
+        domain: "Analytics & Performance",
+        type: "single",
+        prompt: "Which view displays current metrics and information about queues if you have a membership?",
+        options: [
+          { id: "a", text: "Queues Activity" },
+          { id: "b", text: "Queues Performance" },
+          { id: "c", text: "My Queues Activity" },
+          { id: "d", text: "Queues" }
+        ],
+        correct: ["c"],
+        explanation: "My Queues Activity restricts real-time metric views strictly to queues where the current user holds membership."
+      },
+      {
+        id: "q52",
+        domain: "Analytics & Dashboards",
+        type: "single",
+        prompt: "What is the maximum limit for creating performance dashboards for private users?",
+        options: [
+          { id: "a", text: "10" },
+          { id: "b", text: "15" },
+          { id: "c", text: "20" },
+          { id: "d", text: "25" }
+        ],
+        correct: ["c"],
+        explanation: "Users can construct up to 20 private Performance Dashboards."
+      },
+      {
+        id: "q53",
+        domain: "Analytics & Views",
+        type: "single",
+        prompt: "Which view helps determine agent performance issues with interactions that set a specific wrap-up code in queues?",
+        options: [
+          { id: "a", text: "Agents Wrap-Up Interval Detail" },
+          { id: "b", text: "Agents Schedule Detail" },
+          { id: "c", text: "Agents Evaluation Detail" },
+          { id: "d", text: "Agents Interactions Detail" }
+        ],
+        correct: ["a"],
+        explanation: "The Agents Wrap-Up Interval Detail view provides breakdown by wrap-up codes assigned across queue interactions."
+      },
+      {
+        id: "q54",
+        domain: "Analytics & Views",
+        type: "single",
+        prompt: "Jenny identifies one of the queues' Service Level to be below threshold. Which view helps view this queue in real-time?",
+        options: [
+          { id: "a", text: "My Queues Activity" },
+          { id: "b", text: "Queues Activity" },
+          { id: "c", text: "Queue Performance" },
+          { id: "d", text: "Performance Dashboard" }
+        ],
+        correct: ["b"],
+        explanation: "The Queues Activity view delivers real-time metrics including waiting interactions, active agents, and SLA."
+      },
+      {
+        id: "q55",
+        domain: "Analytics & Dashboards",
+        type: "multiple",
+        maxSelections: 3,
+        prompt: "Select all available options for adding widgets to a performance dashboard. (Choose three.)",
+        options: [
+          { id: "a", text: "Agent Status" },
+          { id: "b", text: "Grid" },
+          { id: "c", text: "Text" },
+          { id: "d", text: "Metric" },
+          { id: "e", text: "Interaction" },
+          { id: "f", text: "Chart" }
+        ],
+        correct: ["c", "d", "f"],
+        explanation: "Performance Dashboards support Metric, Chart, and custom Text/Header widgets."
+      },
+      {
+        id: "q56",
+        domain: "Platform Architecture",
+        type: "multiple",
+        maxSelections: 2,
+        prompt: "Genesys Cloud CX is fully supported on which browsers? (Choose two.)",
+        options: [
+          { id: "a", text: "Internet Explorer" },
+          { id: "b", text: "Firefox" },
+          { id: "c", text: "Chrome" },
+          { id: "d", text: "Safari" },
+          { id: "e", text: "Opera" }
+        ],
+        correct: ["b", "c"],
+        explanation: "Google Chrome and Mozilla Firefox are fully supported enterprise browser clients."
+      },
+      {
+        id: "q57",
+        domain: "Routing & ACD",
+        type: "single",
+        prompt: "Which Genesys Cloud CX feature helps reduce wait time for each call?",
+        options: [
+          { id: "a", text: "Automatic Call Distribution" },
+          { id: "b", text: "Workforce Management" },
+          { id: "c", text: "Skill-based Routing" },
+          { id: "d", text: "IVR" }
+        ],
+        correct: ["a"],
+        explanation: "Automatic Call Distribution (ACD) dynamically matches incoming calls to available agents immediately."
+      },
+      {
+        id: "q58",
+        domain: "Platform Architecture",
+        type: "single",
+        prompt: "Which of the following is NOT a feature of Genesys Cloud CX contact center?",
+        options: [
+          { id: "a", text: "Human Capital Management" },
+          { id: "b", text: "Workforce Management" },
+          { id: "c", text: "Quality Management" },
+          { id: "d", text: "Automatic Call Distribution" }
+        ],
+        correct: ["a"],
+        explanation: "HCM (payroll, HR core) is not a native component of the Genesys Cloud Contact Center suite."
+      },
+      {
+        id: "q59",
+        domain: "Routing & ACD",
+        type: "single",
+        prompt: "Which of the following routes interactions based on an algorithm that determines the best available agent?",
+        options: [
+          { id: "a", text: "Architect" },
+          { id: "b", text: "Automatic Call Distribution" },
+          { id: "c", text: "Emergency Groups" },
+          { id: "d", text: "Scheduling" }
+        ],
+        correct: ["b"],
+        explanation: "The ACD mathematical engine calculates the best available agent match based on evaluation methods."
+      },
+      {
+        id: "q60",
+        domain: "Routing & ACD",
+        type: "multiple",
+        maxSelections: 3,
+        prompt: "Which attributes are used by ACD to determine the best available agent? (Choose three.)",
+        options: [
+          { id: "a", text: "Language skills" },
+          { id: "b", text: "Additional attribute ratings" },
+          { id: "c", text: "ACD skills" },
+          { id: "d", text: "Time since last ACD interaction" },
+          { id: "e", text: "Staffing requirements" }
+        ],
+        correct: ["a", "c", "d"],
+        explanation: "ACD evaluates agent Language skills, ACD Skills/proficiencies, and idle time (time since last interaction)."
+      },
+      {
+        id: "q61",
+        domain: "Routing & ACD",
+        type: "single",
+        prompt: "Routing is a part of customer communication that connects the customer with an appropriate automated resource or agent.",
+        options: [
+          { id: "a", text: "True" },
+          { id: "b", text: "False" }
+        ],
+        correct: ["a"],
+        explanation: "Routing manages interaction flow to self-service bots or live agents."
+      },
+      {
+        id: "q62",
+        domain: "Routing & ACD",
+        type: "multiple",
+        maxSelections: 2,
+        prompt: "Which attributes ensure that interactions are routed to the most qualified agent? (Choose two.)",
+        options: [
+          { id: "a", text: "Languages" },
+          { id: "b", text: "Medians" },
+          { id: "c", text: "Skills" },
+          { id: "d", text: "Index Ratings" },
+          { id: "e", text: "Knowledge levels" }
+        ],
+        correct: ["a", "c"],
+        explanation: "Languages and Skills define agent competencies in ACD routing."
+      },
+      {
+        id: "q63",
+        domain: "Platform & Alerts",
+        type: "single",
+        prompt: "Alerts that have been read are not included in the alert count, even if they are still active.",
+        options: [
+          { id: "a", text: "True" },
+          { id: "b", text: "False" }
+        ],
+        correct: ["a"],
+        explanation: "Marking an alert as read decrements the unread badge count in the header."
+      },
+      {
+        id: "q64",
+        domain: "Queues & Metrics",
+        type: "single",
+        prompt: "What do a Service Level of 80 and a Service Level Target of 20 for Voice interactions mean?",
+        options: [
+          { id: "a", text: "80 calls must be answered every 20 seconds." },
+          { id: "b", text: "80% of calls must be answered within 20 seconds." },
+          { id: "c", text: "80% of agents must answer calls within 20 seconds." },
+          { id: "d", text: "20 chats and calls must be answered in 80 seconds." }
+        ],
+        correct: ["b"],
+        explanation: "Service level SLA 80/20 requires that 80% of offered interactions are answered within 20 seconds."
+      },
+      {
+        id: "q65",
+        domain: "Roles & Permissions",
+        type: "single",
+        prompt: "A freshly added user has no phone call icon on the left pane. What is the most likely reason?",
+        options: [
+          { id: "a", text: "The user may have deleted the icon." },
+          { id: "b", text: "The user is not assigned the appropriate role." },
+          { id: "c", text: "The user's phone is unplugged." },
+          { id: "d", text: "The phone number is being used by a different user." }
+        ],
+        correct: ["b"],
+        explanation: "Without telephony role permissions, telephony call UI elements remain hidden."
+      },
+      {
+        id: "q66",
+        domain: "Queues",
+        type: "multiple",
+        maxSelections: 2,
+        prompt: "Which options can be configured when setting up a queue? (Choose two.)",
+        options: [
+          { id: "a", text: "Wrap-up Codes" },
+          { id: "b", text: "ACD Skills" },
+          { id: "c", text: "Utilization" },
+          { id: "d", text: "Alerting Timeout" },
+          { id: "e", text: "Inbound Flows" }
+        ],
+        correct: ["a", "d"],
+        explanation: "Queue settings include assigned Wrap-up Codes, Alerting Timeout, Member lists, and Routing Evaluation."
+      },
+      {
+        id: "q67",
+        domain: "Administration & Divisions",
+        type: "single",
+        prompt: "Why are Divisions important in an organization?",
+        options: [
+          { id: "a", text: "Divisions are used to divide interactions equally between 2 or more queues." },
+          { id: "b", text: "Divisions allow the organization to control which roles can be assigned to users." },
+          { id: "c", text: "Divisions allow grouping and segregation of objects while keeping them inside the same organization." },
+          { id: "d", text: "Divisions define which users can be assigned to queues." }
+        ],
+        correct: ["c"],
+        explanation: "Divisions provide multi-tenant object segregation and administrative security boundaries."
+      },
+      {
+        id: "q68",
+        domain: "Administration & Menu",
+        type: "single",
+        prompt: "Under which container is Queue configuration available in Admin menu?",
+        options: [
+          { id: "a", text: "Contact Center" },
+          { id: "b", text: "Telephony" },
+          { id: "c", text: "Integration" },
+          { id: "d", text: "Routing" }
+        ],
+        correct: ["a"],
+        explanation: "Queues are managed under Admin > Contact Center > Queues."
+      },
+      {
+        id: "q69",
+        domain: "Scripts",
+        type: "single",
+        prompt: "Which feature presents caller info to an agent and allows them to update or collect information?",
+        options: [
+          { id: "a", text: "Dialog boxes" },
+          { id: "b", text: "Scripts" },
+          { id: "c", text: "Toast pop-ups" },
+          { id: "d", text: "IVR prompts" }
+        ],
+        correct: ["b"],
+        explanation: "Scripts display interactive forms and contextual customer data directly to agents during interactions."
+      },
+      {
+        id: "q70",
+        domain: "Scripts",
+        type: "multiple",
+        maxSelections: 4,
+        prompt: "Which default templates are available when creating a new script without custom templates? (Choose four.)",
+        options: [
+          { id: "a", text: "Blank Script" },
+          { id: "b", text: "Default Callback Script" },
+          { id: "c", text: "Default Inbound Script" },
+          { id: "d", text: "Default Outbound Script" },
+          { id: "e", text: "Collection Script Template" },
+          { id: "f", text: "Sales Script Template" }
+        ],
+        correct: ["a", "b", "c", "d"],
+        explanation: "Out-of-the-box script templates include Blank, Default Callback, Default Inbound, and Default Outbound."
+      },
+      {
+        id: "q71",
+        domain: "Scripts",
+        type: "single",
+        prompt: "You cannot add variables to a script.",
+        options: [
+          { id: "a", text: "True" },
+          { id: "b", text: "False" }
+        ],
+        correct: ["b"],
+        explanation: "Scripts support custom string, number, and boolean variables with input/output bindings."
+      },
+      {
+        id: "q72",
+        domain: "Workforce Management",
+        type: "single",
+        prompt: "Which feature can you use to replace and automate spreadsheet schedules?",
+        options: [
+          { id: "a", text: "Genesys Cloud CX Workforce Management" },
+          { id: "b", text: "Genesys Cloud CX API" },
+          { id: "c", text: "Genesys Cloud CX Architect" },
+          { id: "d", text: "Genesys Cloud CX Reporting and Analytics" }
+        ],
+        correct: ["a"],
+        explanation: "Genesys Cloud WFM automates shift creation, time-off management, and intraday scheduling."
+      },
+      {
+        id: "q73",
+        domain: "Quality Management",
+        type: "multiple",
+        maxSelections: 3,
+        prompt: "Which of the following items could be defined as quality policies? (Choose three.)",
+        options: [
+          { id: "a", text: "Update the Do Not Call list with records that have the appropriate wrap-up code." },
+          { id: "b", text: "Specify time sets as a matching criteria." },
+          { id: "c", text: "Set up a schedule to run a daily report." },
+          { id: "d", text: "Automatically assign an evaluation for all calls over 5 minutes." },
+          { id: "e", text: "Determine how long to retain recordings and whether to archive or delete them." }
+        ],
+        correct: ["b", "d", "e"],
+        explanation: "Policies configure matching criteria, automatic evaluation sampling, and data retention rules."
+      },
+      {
+        id: "q74",
+        domain: "Outbound Dialing",
+        type: "multiple",
+        maxSelections: 3,
+        prompt: "Which items need to be configured for an outbound campaign? (Choose three.)",
+        options: [
+          { id: "a", text: "Agents" },
+          { id: "b", text: "Evaluation Forms" },
+          { id: "c", text: "Contact Lists" },
+          { id: "d", text: "Campaigns" },
+          { id: "e", text: "Dialing Modes" }
+        ],
+        correct: ["a", "c", "e"],
+        explanation: "Campaign execution requires assigned Queues/Agents, Contact Lists, and Dialing Modes."
+      },
+      {
+        id: "q75",
+        domain: "Quality Management",
+        type: "single",
+        prompt: "Where can you view agent evaluation scores, evaluation activity, and calibration activity in real-time?",
+        options: [
+          { id: "a", text: "Performance > Workspace > Dashboards" },
+          { id: "b", text: "Performance > Overview (Evaluations)" },
+          { id: "c", text: "Admin > Contact Center" },
+          { id: "d", text: "Admin > Quality" }
+        ],
+        correct: ["b"],
+        explanation: "Quality evaluation progress is tracked via Performance > Overview (Evaluations)."
+      },
+      {
+        id: "q76",
+        domain: "Quality Management",
+        type: "multiple",
+        maxSelections: 3,
+        prompt: "Select all the question types available while creating an Evaluation Form. (Choose three.)",
+        options: [
+          { id: "a", text: "Multiple Choice" },
+          { id: "b", text: "Yes/No" },
+          { id: "c", text: "Fill in the blank" },
+          { id: "d", text: "Range" },
+          { id: "e", text: "Multiple Response" }
+        ],
+        correct: ["a", "b", "d"],
+        explanation: "Evaluation Form designers support Multiple Choice, Yes/No, and numeric Range question formats."
+      },
+      {
+        id: "q77",
+        domain: "Workforce Management",
+        type: "single",
+        prompt: "Which of the following statements is NOT true regarding Management Units?",
+        options: [
+          { id: "a", text: "Agents that handle the same set of interactions should belong to the same management unit." },
+          { id: "b", text: "Management Units partition agents and interactions into logical groups." },
+          { id: "c", text: "A maximum of 100 agents can be added to a single Management Unit." },
+          { id: "d", text: "They help you create, manage, and view schedules for a group." }
+        ],
+        correct: ["c"],
+        explanation: "Management Units support significantly more than 100 agents (up to thousands per business unit)."
+      },
+      {
+        id: "q78",
+        domain: "Platform Architecture",
+        type: "single",
+        prompt: "Which architectural approach is used to develop Genesys Cloud CX as a suite of small services?",
+        options: [
+          { id: "a", text: "Monolithic Architecture" },
+          { id: "b", text: "Microservices Architecture" },
+          { id: "c", text: "Genesys Cloud CX Salesforce Architecture" },
+          { id: "d", text: "Single Core Architecture" }
+        ],
+        correct: ["b"],
+        explanation: "Genesys Cloud is built on a distributed microservices cloud-native architecture hosted on AWS."
+      },
+      {
+        id: "q79",
+        domain: "Collaborate",
+        type: "single",
+        prompt: "Which of the following is NOT a Genesys Cloud CX Collaborate feature?",
+        options: [
+          { id: "a", text: "Text Chat" },
+          { id: "b", text: "AI Chat" },
+          { id: "c", text: "Video Chat" },
+          { id: "d", text: "Content Management" }
+        ],
+        correct: ["b"],
+        explanation: "Collaborate provides internal Text Chat, Video, and Content Management, but not built-in internal AI Chatbots."
+      },
+      {
+        id: "q80",
+        domain: "Collaborate",
+        type: "single",
+        prompt: "Instant messaging costs are significantly less than long-distance phone conversations.",
+        options: [
+          { id: "a", text: "True" },
+          { id: "b", text: "False" }
+        ],
+        correct: ["a"],
+        explanation: "IP messaging eliminates PSTN toll and long-distance carrier charges."
+      },
+      {
+        id: "q81",
+        domain: "Platform & Mobile",
+        type: "multiple",
+        maxSelections: 2,
+        prompt: "Which operating systems are supported by Genesys Cloud CX mobile applications? (Choose two.)",
+        options: [
+          { id: "a", text: "Harmony OS" },
+          { id: "b", text: "iOS" },
+          { id: "c", text: "Windows 10 Mobile" },
+          { id: "d", text: "Android" }
+        ],
+        correct: ["b", "d"],
+        explanation: "Genesys Cloud mobile apps are published natively for Apple iOS and Google Android."
+      },
+      {
+        id: "q82",
+        domain: "Platform Architecture",
+        type: "single",
+        prompt: "Which platform component manages account configuration, directory search, user membership, phone call routing, and agent assignment?",
+        options: [
+          { id: "a", text: "Public Interface Services" },
+          { id: "b", text: "Core Services" },
+          { id: "c", text: "Communication Services" },
+          { id: "d", text: "Application Services" }
+        ],
+        correct: ["b"],
+        explanation: "Core Services power the foundational platform building blocks including Directory, Auth, and ACD assignment."
+      },
+      {
+        id: "q83",
+        domain: "Documents & Workspaces",
+        type: "multiple",
+        maxSelections: 3,
+        prompt: "Select all access level permission types for workspace membership. (Choose three.)",
+        options: [
+          { id: "a", text: "Full Access" },
+          { id: "b", text: "Partial" },
+          { id: "c", text: "Read-Only" },
+          { id: "d", text: "Write-Only" },
+          { id: "e", text: "Contributor" },
+          { id: "f", text: "Collaborator" }
+        ],
+        correct: ["a", "c", "e"],
+        explanation: "Workspace permissions are defined as Full Access, Contributor, and Read-Only."
+      },
+      {
+        id: "q84",
+        domain: "Administration & Support",
+        type: "single",
+        prompt: "How do you represent your organization when you contact the Genesys Cloud CX support team?",
+        options: [
+          { id: "a", text: "Organization ID" },
+          { id: "b", text: "Company Name" },
+          { id: "c", text: "Agent Name" },
+          { id: "d", text: "ID" }
+        ],
+        correct: ["a"],
+        explanation: "The unique GUID 'Organization ID' found in Organization Settings identifies your tenant to Genesys Customer Care."
+      },
+      {
+        id: "q85",
+        domain: "Administration & Roles",
+        type: "single",
+        prompt: "What level of permissions does a user require to view the organization settings?",
+        options: [
+          { id: "a", text: "Admin" },
+          { id: "b", text: "Agent" },
+          { id: "c", text: "Supervisor" },
+          { id: "d", text: "All of the above" }
+        ],
+        correct: ["a"],
+        explanation: "Admin role permissions are strictly required to view and configure Organization Settings."
+      },
+      {
+        id: "q86",
+        domain: "Documents & Workspaces",
+        type: "single",
+        prompt: "You added a new document to Genesys Cloud CX and want everyone in the organization to find it easily. What must you do?",
+        options: [
+          { id: "a", text: "Add meaningful tags to the document." },
+          { id: "b", text: "Add a priority of 'High' to the document." },
+          { id: "c", text: "Ensure that the document name is easy to search for." },
+          { id: "d", text: "Number the document such that it appears on the top of the list." }
+        ],
+        correct: ["a"],
+        explanation: "Adding descriptive tags indexes document content across directory and global search filters."
+      },
+      {
+        id: "q87",
+        domain: "Administration & Settings",
+        type: "single",
+        prompt: "You can allocate multiple email addresses to receive suggestions, issues, and concerns regarding Genesys Cloud CX at your organization.",
+        options: [
+          { id: "a", text: "True" },
+          { id: "b", text: "False" }
+        ],
+        correct: ["b"],
+        explanation: "The organization settings allow only a single primary feedback/issue-reporting email address destination."
+      },
+      {
+        id: "q88",
+        domain: "Telephony & Trunks",
+        type: "single",
+        prompt: "What type of trunk would you configure to connect to AudioCodes phones?",
+        options: [
+          { id: "a", text: "WebRTC phone trunk" },
+          { id: "b", text: "Phone trunk" },
+          { id: "c", text: "External trunk" },
+          { id: "d", text: "Network interface trunk" }
+        ],
+        correct: ["b"],
+        explanation: "Hardware SIP phones (such as AudioCodes and Polycom) register via a Phone Trunk."
+      },
+      {
+        id: "q89",
+        domain: "Telephony & DID",
+        type: "multiple",
+        maxSelections: 2,
+        prompt: "Select the reasons behind a user not receiving calls through their assigned DID number or extension. (Choose two.)",
+        options: [
+          { id: "a", text: "The DID number and extension are not listed in the DID or extension pools." },
+          { id: "b", text: "The DID number and extension are considered the same numbers and entered into the same phone." },
+          { id: "c", text: "The user does not have the proper license type, roles, and permissions." },
+          { id: "d", text: "The DID number and the extension do not have the same last 4 digits." }
+        ],
+        correct: ["a", "c"],
+        explanation: "Missing numbers from inventory pools and insufficient user telephony license permissions prevent inbound call delivery."
+      },
+      {
+        id: "q90",
+        domain: "Administration & Locations",
+        type: "multiple",
+        maxSelections: 2,
+        prompt: "Your company acquired a new building and needs to add this location to Genesys Cloud CX. What are the prerequisites? (Choose two.)",
+        options: [
+          { id: "a", text: "You must know the exact coordinates of the new building." },
+          { id: "b", text: "You must have images of all the users located at the new location." },
+          { id: "c", text: "You must collect general information such as building address, number of floors, location contact information, etc." },
+          { id: "d", text: "You must have the basic profile data for all users at the new location." },
+          { id: "e", text: "You must have Admin rights to Genesys Cloud CX." }
+        ],
+        correct: ["c", "e"],
+        explanation: "Creating locations requires administrative permissions and physical address information."
+      },
+      {
+        id: "q91",
+        domain: "Telephony & Dial Plans",
+        type: "single",
+        prompt: "A Number plan determines how many and which digits are necessary for call routing.",
+        options: [
+          { id: "a", text: "True" },
+          { id: "b", text: "False" }
+        ],
+        correct: ["a"],
+        explanation: "Number plans parse dialed digit strings and match them to call classifications."
+      },
+      {
+        id: "q92",
+        domain: "Telephony & Outbound Routes",
+        type: "single",
+        prompt: "________ binds the numbering plan with the trunk.",
+        options: [
+          { id: "a", text: "Inbound route" },
+          { id: "b", text: "Outbound route" },
+          { id: "c", text: "Edge" },
+          { id: "d", text: "Edge Group" }
+        ],
+        correct: ["b"],
+        explanation: "Outbound routes link dial classifications to external trunk interfaces."
+      },
+      {
+        id: "q93",
+        domain: "Telephony & Outbound Routes",
+        type: "single",
+        prompt: "You can add more than one outbound route to the contact center.",
+        options: [
+          { id: "a", text: "True" },
+          { id: "b", text: "False" }
+        ],
+        correct: ["a"],
+        explanation: "Multiple outbound routes can be created for least-cost routing and trunk failover redundancy."
+      },
+      {
+        id: "q94",
+        domain: "Telephony & Phone Management",
+        type: "single",
+        prompt: "Where can you add preconfigured settings to the phones?",
+        options: [
+          { id: "a", text: "Admin > Telephone > Phone Management > Calls" },
+          { id: "b", text: "Admin > Telephone > Phone Management > Phones" },
+          { id: "c", text: "Admin > Telephone > Phone Management > Base Settings" }
+        ],
+        correct: ["c"],
+        explanation: "Base Settings define reusable configuration templates applied across physical and WebRTC phones."
+      },
+      {
+        id: "q95",
+        domain: "Telephony & Dial Plans",
+        type: "single",
+        prompt: "Which of the following statements is NOT true regarding numbering plans?",
+        options: [
+          { id: "a", text: "It is a telecommunication scheme where telephone numbers are assigned to subscribers and telephony endpoints." },
+          { id: "b", text: "Numbering plan is also known as a dial plan." },
+          { id: "c", text: "Numbering plan can be added or modified based on the organizational requirements." },
+          { id: "d", text: "It has to be created manually." }
+        ],
+        correct: ["d"],
+        explanation: "Genesys Cloud generates standardized, country-specific default numbering plans automatically upon Site creation."
+      },
+      {
+        id: "q96",
+        domain: "Telephony & WebRTC",
+        type: "single",
+        prompt: "WebRTC phones require all hardware and software to be properly installed.",
+        options: [
+          { id: "a", text: "True" },
+          { id: "b", text: "False" }
+        ],
+        correct: ["b"],
+        explanation: "WebRTC runs directly inside supported web browsers without requiring local software or softphone client installations."
+      },
+      {
+        id: "q97",
+        domain: "Telephony & Security",
+        type: "single",
+        prompt: "Where do you add the list of IP or CIDR addresses which are allowed or denied access to an External or Phone Trunk?",
+        options: [
+          { id: "a", text: "Availability" },
+          { id: "b", text: "SIP Access Control" },
+          { id: "c", text: "Outbound" },
+          { id: "d", text: "Calling" }
+        ],
+        correct: ["b"],
+        explanation: "SIP Access Control lists filter allowed or denied carrier IP addresses and subnets."
+      },
+      {
+        id: "q98",
+        domain: "Analytics & Reports",
+        type: "single",
+        prompt: "You can develop a plan to generate reports regularly, however, Genesys Cloud CX does not allow you to run reports on demand.",
+        options: [
+          { id: "a", text: "True" },
+          { id: "b", text: "False" }
+        ],
+        correct: ["b"],
+        explanation: "Genesys Cloud supports both scheduled automated reports and instant on-demand report execution."
+      },
+      {
+        id: "q99",
+        domain: "Analytics & Reports",
+        type: "multiple",
+        maxSelections: 3,
+        prompt: "Which of following file formats are available to export a report? (Choose three.)",
+        options: [
+          { id: "a", text: ".doc" },
+          { id: "b", text: ".xls" },
+          { id: "c", text: ".txt" },
+          { id: "d", text: ".docx" },
+          { id: "e", text: ".xlsx" },
+          { id: "f", text: ".pdf" }
+        ],
+        correct: ["b", "e", "f"],
+        explanation: "Reports can be exported in .xls, .xlsx (Excel), and .pdf formats."
+      },
+      {
+        id: "q100",
+        domain: "Analytics & Reports",
+        type: "multiple",
+        maxSelections: 3,
+        prompt: "Which of the following statements are true? (Choose three.)",
+        options: [
+          { id: "a", text: "A queue report only counts interactions handled by an agent." },
+          { id: "b", text: "An Abandon is an interaction that disconnects before an agent handles it." },
+          { id: "c", text: "An agent-based report counts any interactions an agent worked with." },
+          { id: "d", text: "Each report contains a predefined set of metrics." },
+          { id: "e", text: "Reports once created cannot be configured." }
+        ],
+        correct: ["b", "c", "d"],
+        explanation: "Abandons disconnect prior to answer; agent reports capture interaction handle activity; reports feature standardized metric schemas."
+      },
+      {
+        id: "q101",
+        domain: "Analytics & Reports",
+        type: "single",
+        prompt: "The status of agents, whether active or inactive, does not impact metrics in queue reports, however, active agents appear on/affect agent reports.",
+        options: [
+          { id: "a", text: "True" },
+          { id: "b", text: "False" }
+        ],
+        correct: ["a"],
+        explanation: "Queue reports aggregate interaction traffic regardless of member status, whereas agent reports filter on active user sessions."
+      },
+      {
+        id: "q102",
+        domain: "Analytics & Intervals",
+        type: "single",
+        prompt: "Genesys Cloud CX tracks metric statistics in ________ minute intervals.",
+        options: [
+          { id: "a", text: "20" },
+          { id: "b", text: "30" },
+          { id: "c", text: "45" },
+          { id: "d", text: "10" }
+        ],
+        correct: ["b"],
+        explanation: "Analytics aggregates historical contact center metrics in standardized 30-minute intervals."
+      },
+      {
+        id: "q103",
+        domain: "Routing & Queues",
+        type: "single",
+        prompt: "Some calls enter and exit the queue without being handled or terminated. What terminology is used to describe such calls?",
+        options: [
+          { id: "a", text: "IVR" },
+          { id: "b", text: "Abandon" },
+          { id: "c", text: "Flow-outs" },
+          { id: "d", text: "Disconnect" }
+        ],
+        correct: ["c"],
+        explanation: "Calls routed out of a queue to another destination or voicemail without being handled or abandoned are classified as Flow-outs."
+      },
+      {
+        id: "q104",
+        domain: "Queues & Reporting",
+        type: "single",
+        prompt: "While Alex is monitoring queue reports, Sam deletes an inactive agent from the queue. Will this affect the metrics that Alex is monitoring?",
+        options: [
+          { id: "a", text: "Yes" },
+          { id: "b", text: "No" }
+        ],
+        correct: ["b"],
+        explanation: "Deleting an inactive user does not modify historical or active queue interaction counts."
+      },
+      {
+        id: "q105",
+        domain: "Mobile & Reporting",
+        type: "single",
+        prompt: "Sam wants to install the reporting app on his iPad to access metrics. Which app does he need to install?",
+        options: [
+          { id: "a", text: "Genesys Cloud CX Admin" },
+          { id: "b", text: "Genesys Cloud CX User" },
+          { id: "c", text: "Genesys Cloud CX Reporting" },
+          { id: "d", text: "Genesys Cloud CX Supervisor" }
+        ],
+        correct: ["d"],
+        explanation: "The 'Genesys Cloud CX Supervisor' application gives supervisors real-time analytics access."
+      },
+      {
+        id: "q106",
+        domain: "Analytics & Reports",
+        type: "single",
+        prompt: "Which report displays the length of each session for one or more agents over a specified period of time?",
+        options: [
+          { id: "a", text: "Agent Activity Summary Report" },
+          { id: "b", text: "Agent Metrics Report" },
+          { id: "c", text: "Agent Login-Logout Details Report" },
+          { id: "d", text: "Agent Quality Details Report" }
+        ],
+        correct: ["c"],
+        explanation: "The Agent Login-Logout Details Report itemizes login timestamps, logout timestamps, and total online session lengths."
+      },
+      {
+        id: "q107",
+        domain: "Analytics & Performance",
+        type: "single",
+        prompt: "Which of the following best defines the performance view for Agents?",
+        options: [
+          { id: "a", text: "Used to monitor real-time contact center metrics." },
+          { id: "b", text: "Used to view real-time metrics, such as status, time in status, calls answered, average talk time, and average ACW." },
+          { id: "c", text: "Used to view real-time and historical metrics, such as service level %, abandon %, customers waiting, and active agents." },
+          { id: "d", text: "Used to view historical data only." }
+        ],
+        correct: ["b"],
+        explanation: "The Agents Performance view breaks down agent routing status, talk time, and handle times."
+      },
+      {
+        id: "q108",
+        domain: "Analytics & Views",
+        type: "single",
+        prompt: "Your customizations in the interaction view remain in effect even if you leave the view and return to it later.",
+        options: [
+          { id: "a", text: "True" },
+          { id: "b", text: "False" }
+        ],
+        correct: ["a"],
+        explanation: "Custom column filters and date preferences persist in user session storage."
+      },
+      {
+        id: "q109",
+        domain: "Analytics & Performance",
+        type: "single",
+        prompt: "Which of the following best defines the performance view for Queues?",
+        options: [
+          { id: "a", text: "Used to monitor real-time contact center metrics." },
+          { id: "b", text: "Used to view real-time metrics, such as status, time in status, calls answered, average talk time, and average ACW." },
+          { id: "c", text: "Used to view real-time and historical metrics, such as service level %, abandon %, customers waiting, and active agents." },
+          { id: "d", text: "Used to view historical data only." }
+        ],
+        correct: ["c"],
+        explanation: "The Queues Performance view displays service level percentages, abandon rates, waiting interactions, and active member statistics."
+      },
+      {
+        id: "q110",
+        domain: "Analytics & Skills",
+        type: "single",
+        prompt: "Which view helps supervisors analyze performance issues with a specific skill in one or multiple queues?",
+        options: [
+          { id: "a", text: "Agents" },
+          { id: "b", text: "Queues Activity" },
+          { id: "c", text: "Skills Performance" },
+          { id: "d", text: "Interactions" }
+        ],
+        correct: ["c"],
+        explanation: "The Skills Performance view isolates interaction performance metrics grouped by ACD skill."
+      },
+      {
+        id: "q111",
+        domain: "Analytics & Views",
+        type: "single",
+        prompt: "Which of the following displays the real-time metrics for the contact center?",
+        options: [
+          { id: "a", text: "Dynamic Views" },
+          { id: "b", text: "Static Reports" },
+          { id: "c", text: "Scheduled Exports" },
+          { id: "d", text: "Data Tables" }
+        ],
+        correct: ["a"],
+        explanation: "Dynamic Views render live streaming contact center metrics."
+      },
+      {
+        id: "q112",
+        domain: "Administration & Settings",
+        type: "single",
+        prompt: "You can enable the location detection setting of the contact center from the ________ container.",
+        options: [
+          { id: "a", text: "Account Settings" },
+          { id: "b", text: "Telephony" },
+          { id: "c", text: "Contact Center" },
+          { id: "d", text: "Integrations" }
+        ],
+        correct: ["a"],
+        explanation: "Location detection settings are located within Admin > Account Settings."
+      },
+      {
+        id: "q113",
+        domain: "Documents & Files",
+        type: "single",
+        prompt: "What is the maximum file size that a user can upload into Genesys Cloud Documents?",
+        options: [
+          { id: "a", text: "500 MB" },
+          { id: "b", text: "1 GB" },
+          { id: "c", text: "2 GB" },
+          { id: "d", text: "5 GB" }
+        ],
+        correct: ["c"],
+        explanation: "Genesys Cloud Documents has an upload limit of 2 GB per file."
+      },
+      {
+        id: "q114",
+        domain: "Architect & Flow Design",
+        type: "single",
+        prompt: "Genesys Cloud 1 supports which of the following flows?",
+        options: [
+          { id: "a", text: "Outbound call flows" },
+          { id: "b", text: "Digital bot flows" },
+          { id: "c", text: "Agent routing script flows" },
+          { id: "d", text: "Predictive engagement flows" }
+        ],
+        correct: ["a"],
+        explanation: "Genesys Cloud 1 licensing includes core voice capabilities including Outbound call flows."
+      },
+      {
+        id: "q115",
+        domain: "Collaborate & Security",
+        type: "single",
+        prompt: "Genesys Cloud does not perform virus scans for attachments that are shared in chats.",
+        options: [
+          { id: "a", text: "True" },
+          { id: "b", text: "False" }
+        ],
+        correct: ["a"],
+        explanation: "Genesys Cloud does not perform automated virus scanning on chat attachments."
+      },
+      {
+        id: "q116",
+        domain: "Outbound Dialing",
+        type: "single",
+        prompt: "A campaign can have multiple DNC (Do Not Call) lists.",
+        options: [
+          { id: "a", text: "True" },
+          { id: "b", text: "False" }
+        ],
+        correct: ["a"],
+        explanation: "Outbound campaigns can bind multiple DNC lists simultaneously."
+      },
+      {
+        id: "q117",
+        domain: "Administration & Divisions",
+        type: "single",
+        prompt: "You can rename the Home division and move objects into and out of it, but you cannot delete it.",
+        options: [
+          { id: "a", text: "True" },
+          { id: "b", text: "False" }
+        ],
+        correct: ["a"],
+        explanation: "The default Home division can be renamed but cannot be deleted from the organization."
+      },
+      {
+        id: "q118",
+        domain: "Routing & ACD",
+        type: "single",
+        prompt: "Identify the correct description for Best Available Skills evaluation routing.",
+        options: [
+          { id: "a", text: "ACD builds a list of agents with all skills; then considers skill proficiency of the agents to put them in sequence." },
+          { id: "b", text: "ACD ignores all skill proficiencies and sends the call to the longest idle agent." },
+          { id: "c", text: "ACD strips skills away automatically every 10 seconds." },
+          { id: "d", text: "ACD routes exclusively to preferred external numbers." }
+        ],
+        correct: ["a"],
+        explanation: "Best Available Skills ranks agents possessing required skills using proficiency score calculations."
+      },
+      {
+        id: "q119",
+        domain: "Licensing & Features",
+        type: "single",
+        prompt: "ABC Corporation plans to purchase Genesys Cloud to meet their requirement for unlimited multi-channel interaction routing. Which is the right license level to purchase?",
+        options: [
+          { id: "a", text: "Genesys Cloud 1" },
+          { id: "b", text: "Genesys Cloud 2" },
+          { id: "c", text: "Genesys Cloud 3" },
+          { id: "d", text: "Collaborate" }
+        ],
+        correct: ["c"],
+        explanation: "Genesys Cloud 3 delivers full omni-channel contact center capabilities, complete WEM, and unlimited digital routing."
+      },
+      {
+        id: "q120",
+        domain: "Outbound Dialing",
+        type: "single",
+        prompt: "What would you select from the Performance menu to view real-time statistics for all active campaigns?",
+        options: [
+          { id: "a", text: "Scripts" },
+          { id: "b", text: "Campaign Management" },
+          { id: "c", text: "Outbound Campaigns" },
+          { id: "d", text: "Schedules" }
+        ],
+        correct: ["c"],
+        explanation: "Live campaign performance is monitored via Performance > Outbound Campaigns."
+      },
+      {
+        id: "q121",
+        domain: "Queues & Configuration",
+        type: "single",
+        prompt: "What is the Alerting Timeout with regard to Queue configuration?",
+        options: [
+          { id: "a", text: "This is how long the interaction will alert before disconnecting" },
+          { id: "b", text: "This is how long the agent has to complete after call work" },
+          { id: "c", text: "This is how long the interaction will wait to begin alerting the agent" },
+          { id: "d", text: "This is how long the interaction will alert before timing out and setting the agent's status to Not Responding" }
+        ],
+        correct: ["d"],
+        explanation: "Alerting Timeout designates how many seconds a call rings an agent before re-queuing and setting the agent to Not Responding."
+      },
+      {
+        id: "q122",
+        domain: "Telephony & Recording",
+        type: "single",
+        prompt: "Call Recording is enabled in ________.",
+        options: [
+          { id: "a", text: "Admin > Telephony (Trunks / Line configuration)" },
+          { id: "b", text: "Admin > Quality" },
+          { id: "c", text: "Admin > Contact Center" }
+        ],
+        correct: ["a"],
+        explanation: "Line and trunk recording configurations are activated under Admin > Telephony."
+      },
+      {
+        id: "q123",
+        domain: "Outbound Dialing",
+        type: "single",
+        prompt: "What would you select from the Admin > Outbound Dialing menu to create a new campaign?",
+        options: [
+          { id: "a", text: "Scripts" },
+          { id: "b", text: "Schedules" },
+          { id: "c", text: "Campaign Dashboard" },
+          { id: "d", text: "Campaign Management" }
+        ],
+        correct: ["d"],
+        explanation: "Admin > Outbound Dialing > Campaign Management is the administrative location for creating and launching campaigns."
+      }
+    ];
 
+    let currentMode = 'practice'; // 'practice' or 'exam'
+    let examQuestions = [];
+    let currentIndex = 0;
+    let answers = {};
+    let flags = {};
+    let timeLeft = 120 * 60;
+    let timerInterval = null;
 
-/* =========================================================
-   CONFIGURATION
-========================================================= */
+    function startApp(mode) {
+      currentMode = mode;
+      document.getElementById('mode-modal').classList.add('hidden');
+      
+      examQuestions = [...allQuestionsData]; // Include all questions in both modes
+      document.getElementById("total-q-count").innerText = examQuestions.length;
+      
+      const badge = document.getElementById("header-mode-badge");
+      const timerBox = document.getElementById("timer-box");
 
-const LAMBDA_URL =
-    "https://v4gejir3ejrwwlnyibcx4a7uiq0kljsw.lambda-url.us-east-1.on.aws/";
+      if (currentMode === 'practice') {
+        badge.innerText = "Interactive Practice Mode";
+        badge.className = "font-semibold uppercase tracking-wider text-indigo-600";
+        timerBox.classList.add('hidden');
+      } else {
+        badge.innerText = "Timed Simulation Exam";
+        badge.className = "font-semibold uppercase tracking-wider text-emerald-600";
+        timerBox.classList.remove('hidden');
+        startTimer();
+      }
 
+      renderPalette();
+      loadQuestion(0);
+    }
 
-/* =========================================================
-   GLOBAL VARIABLES
-========================================================= */
+    function startTimer() {
+      timerInterval = setInterval(() => {
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          alert("Time has expired! Submitting your exam automatically.");
+          calculateResults();
+          return;
+        }
+        timeLeft--;
+        const m = Math.floor(timeLeft / 60);
+        const s = timeLeft % 60;
+        document.getElementById("timer").innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+      }, 1000);
+    }
 
-let currentConversationId = null;
+    function renderPalette() {
+      const grid = document.getElementById("palette-grid");
+      grid.innerHTML = "";
+      let answeredCount = 0;
 
-let lastBeepedConversationId = null;
+      examQuestions.forEach((q, idx) => {
+        const isAnswered = answers[q.id] && answers[q.id].length > 0;
+        if (isAnswered) answeredCount++;
 
-let audioContext = null;
+        const btn = document.createElement("button");
+        btn.id = `palette-btn-${idx}`;
+        btn.innerText = idx + 1;
+        btn.className = getPaletteButtonClass(idx);
+        btn.onclick = () => loadQuestion(idx);
+        grid.appendChild(btn);
+      });
 
-let pollingInProgress = false;
+      document.getElementById("palette-progress").innerText = `${answeredCount}/${examQuestions.length}`;
+    }
 
+    function getPaletteButtonClass(idx) {
+      const q = examQuestions[idx];
+      const isAnswered = answers[q.id] && answers[q.id].length > 0;
+      const isFlagged = flags[q.id];
+      const isCurrent = idx === currentIndex;
 
-/* =========================================================
-   DEBUG LOGGER
-========================================================= */
+      let base = "h-8 rounded font-medium text-xs transition border flex items-center justify-center ";
+      
+      if (isCurrent) {
+        base += "ring-2 ring-indigo-600 font-bold ";
+      }
+      if (isFlagged) {
+        return base + "bg-amber-100 text-amber-900 border-amber-300";
+      }
+      if (isAnswered) {
+        return base + "bg-indigo-600 text-white border-indigo-600";
+      }
+      return base + "bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200";
+    }
 
-function debugLog(message) {
+    function loadQuestion(index) {
+      currentIndex = index;
+      const q = examQuestions[currentIndex];
 
-    console.log(message);
+      document.getElementById("domain-badge").innerText = `Domain: ${q.domain}`;
+      document.getElementById("question-header").innerText = `Question ${currentIndex + 1} of ${examQuestions.length}`;
+      document.getElementById("question-prompt").innerText = q.prompt;
 
-    const log =
-        document.getElementById("debug-log");
+      const hint = document.getElementById("selection-hint");
+      if (q.maxSelections && q.maxSelections > 1) {
+        hint.innerText = `(Choose ${q.maxSelections})`;
+        hint.classList.remove("hidden");
+      } else {
+        hint.classList.add("hidden");
+      }
 
-    const time =
-        new Date().toLocaleTimeString();
+      const isFlagged = !!flags[q.id];
+      document.getElementById("flag-icon").innerText = isFlagged ? "★" : "☆";
+      document.getElementById("flag-text").innerText = isFlagged ? "Flagged for Review" : "Mark for Review";
+      const flagBtn = document.getElementById("flag-btn");
+      if (isFlagged) {
+        flagBtn.className = "text-sm font-medium px-3.5 py-1.5 rounded-md border border-amber-400 bg-amber-50 text-amber-700 flex items-center gap-1.5";
+      } else {
+        flagBtn.className = "text-sm font-medium px-3.5 py-1.5 rounded-md border border-slate-300 text-slate-600 hover:bg-slate-50 flex items-center gap-1.5";
+      }
 
-    log.innerHTML +=
-        `<div>[${time}] ${message}</div>`;
+      const optionsContainer = document.getElementById("options-container");
+      optionsContainer.innerHTML = "";
+      const currentSelected = answers[q.id] || [];
+      const hasAnswered = currentSelected.length > 0;
 
-    log.scrollTop =
-        log.scrollHeight;
+      q.options.forEach((opt) => {
+        const isChecked = currentSelected.includes(opt.id);
+        const card = document.createElement("div");
+        
+        // Base styling
+        let cardStyle = "p-4 rounded-lg border cursor-pointer transition flex items-center gap-3 select-none ";
 
-}
-
-
-/* =========================================================
-   GET CONVERSATION ID FROM URL
-========================================================= */
-
-function getConversationIdFromURL() {
-
-    try {
-
-        const urlParams =
-            new URLSearchParams(
-                window.location.search
-            );
-
-
-        const conversationId =
-            urlParams.get("conversationId");
-
-
-        if (!conversationId) {
-
-            debugLog(
-                "❌ conversationId parameter not found in URL"
-            );
-
-            return null;
-
+        if (currentMode === 'practice' && hasAnswered) {
+          const isCorrect = q.correct.includes(opt.id);
+          if (isChecked && isCorrect) {
+            cardStyle += "border-emerald-500 bg-emerald-50 text-emerald-950 font-medium ring-1 ring-emerald-500";
+          } else if (isChecked && !isCorrect) {
+            cardStyle += "border-rose-500 bg-rose-50 text-rose-950 font-medium ring-1 ring-rose-500";
+          } else if (!isChecked && isCorrect) {
+            cardStyle += "border-emerald-300 bg-emerald-50/50 text-emerald-800 border-dashed";
+          } else {
+            cardStyle += "border-slate-200 text-slate-400 opacity-60";
+          }
+        } else {
+          if (isChecked) {
+            cardStyle += "border-indigo-600 bg-indigo-50/50 text-indigo-950 font-medium ring-1 ring-indigo-600";
+          } else {
+            cardStyle += "border-slate-200 hover:bg-slate-50 text-slate-700";
+          }
         }
 
+        card.className = cardStyle;
+        card.onclick = () => handleSelectOption(opt.id);
 
-        /*
-         * Decode URL value
-         */
+        const input = document.createElement("input");
+        input.type = q.type === "multiple" ? "checkbox" : "radio";
+        input.checked = isChecked;
+        input.className = "accent-indigo-600 h-4 w-4 pointer-events-none";
 
-        const decodedId =
-            decodeURIComponent(
-                conversationId
-            ).trim();
+        const label = document.createElement("span");
+        label.innerText = `${opt.id.toUpperCase()}. ${opt.text}`;
 
+        card.appendChild(input);
+        card.appendChild(label);
+        optionsContainer.appendChild(card);
+      });
 
-        debugLog(
-            "Conversation ID received from URL: " +
-            decodedId
-        );
+      // Practice feedback container
+      const feedbackBox = document.getElementById("practice-feedback");
+      if (currentMode === 'practice' && hasAnswered) {
+        const userSorted = [...currentSelected].sort();
+        const correctSorted = [...q.correct].sort();
+        const isFullMatch = userSorted.length === correctSorted.length && userSorted.every((v, i) => v === correctSorted[i]);
 
-
-        return decodedId;
-
-    }
-
-    catch (error) {
-
-        debugLog(
-            "Error reading conversation ID: " +
-            error.message
-        );
-
-        return null;
-
-    }
-
-}
-
-
-/* =========================================================
-   INITIALIZE CONVERSATION
-========================================================= */
-
-function initializeConversation() {
-
-    currentConversationId =
-        getConversationIdFromURL();
-
-
-    if (!currentConversationId) {
-
-        document.getElementById(
-            "conversation-id"
-        ).innerText =
-            "Not Available";
-
-
-        document.getElementById(
-            "call-state"
-        ).innerText =
-            "No Conversation ID";
-
-
-        debugLog(
-            "⚠️ No conversation ID received."
-        );
-
-
-        return;
-
-    }
-
-
-    /*
-     * Display conversation ID
-     */
-
-    document.getElementById(
-        "conversation-id"
-    ).innerText =
-        currentConversationId;
-
-
-    /*
-     * Display active state
-     */
-
-    document.getElementById(
-        "call-state"
-    ).innerText =
-        "Active";
-
-
-    document.getElementById(
-        "call-state"
-    ).className =
-        "value active";
-
-
-    debugLog(
-        "✅ Active Genesys Conversation ID: " +
-        currentConversationId
-    );
-
-
-    /*
-     * Display complete URL
-     * for troubleshooting
-     */
-
-    debugLog(
-        "Current URL: " +
-        window.location.href
-    );
-
-}
-
-
-/* =========================================================
-   AUDIO INITIALIZATION
-========================================================= */
-
-async function enableAudio() {
-
-    try {
-
-        /*
-         * Create AudioContext
-         */
-
-        if (!audioContext) {
-
-            audioContext =
-                new (
-                    window.AudioContext ||
-                    window.webkitAudioContext
-                )();
-
+        feedbackBox.classList.remove('hidden');
+        if (isFullMatch) {
+          feedbackBox.className = "mt-6 p-5 rounded-xl border border-emerald-200 bg-emerald-50/70";
+          document.getElementById("feedback-badge").innerHTML = `<span class="text-emerald-700">✓ Correct Answer</span>`;
+        } else {
+          feedbackBox.className = "mt-6 p-5 rounded-xl border border-rose-200 bg-rose-50/70";
+          document.getElementById("feedback-badge").innerHTML = `<span class="text-rose-700">✗ Incorrect Answer</span>`;
         }
+        document.getElementById("feedback-text").innerHTML = `<strong>Explanation:</strong> ${q.explanation}`;
+      } else {
+        feedbackBox.classList.add('hidden');
+      }
 
+      document.getElementById("prev-btn").disabled = currentIndex === 0;
+      document.getElementById("next-btn").disabled = currentIndex === examQuestions.length - 1;
 
-        /*
-         * Resume AudioContext
-         */
+      renderPalette();
+    }
 
-        if (
-            audioContext.state ===
-            "suspended"
-        ) {
+    function handleSelectOption(optionId) {
+      const q = examQuestions[currentIndex];
+      let selected = answers[q.id] || [];
 
-            await audioContext.resume();
-
+      if (q.type === "single") {
+        answers[q.id] = [optionId];
+      } else {
+        if (selected.includes(optionId)) {
+          answers[q.id] = selected.filter(id => id !== optionId);
+        } else {
+          if (q.maxSelections && selected.length >= q.maxSelections) {
+            return;
+          }
+          answers[q.id] = [...selected, optionId];
         }
-
-
-        debugLog(
-            "AudioContext state: " +
-            audioContext.state
-        );
-
-
-        /*
-         * Update button
-         */
-
-        document.getElementById(
-            "audio-button"
-        ).innerText =
-            "Audio Enabled";
-
-
-        document.getElementById(
-            "beep-status"
-        ).innerText =
-            "Audio Ready";
-
-
-        document.getElementById(
-            "beep-status"
-        ).className =
-            "value beep";
-
-
-        /*
-         * Test beep
-         */
-
-        playTestBeep();
-
-
+      }
+      loadQuestion(currentIndex);
     }
 
-    catch (error) {
-
-        debugLog(
-            "❌ Audio initialization error: " +
-            error.message
-        );
-
+    function toggleFlag() {
+      const q = examQuestions[currentIndex];
+      flags[q.id] = !flags[q.id];
+      loadQuestion(currentIndex);
     }
 
-}
-
-
-/* =========================================================
-   TEST BEEP
-========================================================= */
-
-function playTestBeep() {
-
-    if (!audioContext) {
-
-        return;
-
+    function prevQuestion() {
+      if (currentIndex > 0) loadQuestion(currentIndex - 1);
     }
 
-
-    try {
-
-        const oscillator =
-            audioContext.createOscillator();
-
-
-        const gainNode =
-            audioContext.createGain();
-
-
-        oscillator.type =
-            "sine";
-
-
-        oscillator.frequency.value =
-            800;
-
-
-        gainNode.gain.value =
-            0.2;
-
-
-        oscillator.connect(
-            gainNode
-        );
-
-
-        gainNode.connect(
-            audioContext.destination
-        );
-
-
-        oscillator.start();
-
-
-        oscillator.stop(
-            audioContext.currentTime + 0.15
-        );
-
-
-        debugLog(
-            "🔊 Audio test beep played"
-        );
-
+    function nextQuestion() {
+      if (currentIndex < examQuestions.length - 1) loadQuestion(currentIndex + 1);
     }
 
-    catch (error) {
-
-        debugLog(
-            "Test beep error: " +
-            error.message
-        );
-
+    function openSubmitModal() {
+      const answeredCount = Object.keys(answers).filter(k => answers[k].length > 0).length;
+      const flaggedCount = Object.keys(flags).filter(k => flags[k]).length;
+      document.getElementById("modal-summary").innerText = 
+        `You have answered ${answeredCount} of ${examQuestions.length} questions. You have ${flaggedCount} question(s) flagged for review.`;
+      document.getElementById("submit-modal").classList.remove("hidden");
+      document.getElementById("submit-modal").classList.add("flex");
     }
 
-}
+    function closeSubmitModal() {
+      document.getElementById("submit-modal").classList.add("hidden");
+      document.getElementById("submit-modal").classList.remove("flex");
+    }
 
+    function calculateResults() {
+      if (timerInterval) clearInterval(timerInterval);
+      closeSubmitModal();
 
-/* =========================================================
-   CUSTOMER DISCONNECT BEEP
-========================================================= */
+      document.getElementById("exam-container").classList.add("hidden");
+      document.getElementById("results-view").classList.remove("hidden");
 
-async function playDisconnectBeep() {
+      let correctCount = 0;
+      const domainStats = {};
 
-    debugLog(
-        "🔔 Attempting customer disconnect beep..."
-    );
-
-
-    try {
-
-        /*
-         * Create AudioContext if required
-         */
-
-        if (!audioContext) {
-
-            audioContext =
-                new (
-                    window.AudioContext ||
-                    window.webkitAudioContext
-                )();
-
+      examQuestions.forEach(q => {
+        if (!domainStats[q.domain]) {
+          domainStats[q.domain] = { total: 0, correct: 0 };
         }
+        domainStats[q.domain].total++;
 
+        const userAns = (answers[q.id] || []).sort();
+        const correctAns = [...q.correct].sort();
+        const isMatch = userAns.length === correctAns.length && userAns.every((val, i) => val === correctAns[i]);
 
-        /*
-         * Resume context
-         */
-
-        if (
-            audioContext.state ===
-            "suspended"
-        ) {
-
-            await audioContext.resume();
-
+        if (isMatch) {
+          correctCount++;
+          domainStats[q.domain].correct++;
         }
+      });
 
+      const totalPct = Math.round((correctCount / examQuestions.length) * 100);
+      const isPassed = totalPct >= 65;
 
-        /*
-         * Make sure audio is running
-         */
+      document.getElementById("total-score-pct").innerText = `${totalPct}%`;
+      const passBadge = document.getElementById("pass-status");
+      const banner = document.getElementById("verdict-banner");
 
-        if (
-            audioContext.state !==
-            "running"
-        ) {
+      if (isPassed) {
+        passBadge.innerText = "PASSED";
+        passBadge.className = "text-xs font-bold uppercase tracking-wider block text-emerald-700";
+        banner.className = "mt-4 inline-flex items-center gap-4 px-6 py-3 rounded-xl bg-emerald-50 text-emerald-900 border border-emerald-200";
+      } else {
+        passBadge.innerText = "FAILED";
+        passBadge.className = "text-xs font-bold uppercase tracking-wider block text-rose-700";
+        banner.className = "mt-4 inline-flex items-center gap-4 px-6 py-3 rounded-xl bg-rose-50 text-rose-900 border border-rose-200";
+      }
 
-            throw new Error(
-                "AudioContext is not running"
-            );
+      const domainContainer = document.getElementById("domain-results");
+      domainContainer.innerHTML = "";
+      for (const [domain, stats] of Object.entries(domainStats)) {
+        const pct = Math.round((stats.correct / stats.total) * 100);
+        domainContainer.innerHTML += `
+          <div>
+            <div class="flex justify-between text-xs font-semibold text-slate-700 mb-1">
+              <span>${domain}</span>
+              <span>${pct}% (${stats.correct}/${stats.total})</span>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-2">
+              <div class="h-2 rounded-full ${pct >= 65 ? 'bg-emerald-500' : 'bg-rose-500'}" style="width: ${pct}%"></div>
+            </div>
+          </div>
+        `;
+      }
 
-        }
+      const reviewContainer = document.getElementById("review-container");
+      reviewContainer.innerHTML = "";
+      examQuestions.forEach((q, idx) => {
+        const userAns = answers[q.id] || [];
+        const isMatch = userAns.length === q.correct.length && userAns.sort().every((v, i) => v === [...q.correct].sort()[i]);
 
+        const correctLabels = q.options.filter(o => q.correct.includes(o.id)).map(o => `${o.id.toUpperCase()}. ${o.text}`).join(" | ");
+        const userLabels = q.options.filter(o => userAns.includes(o.id)).map(o => `${o.id.toUpperCase()}. ${o.text}`).join(" | ") || "No answer provided";
 
-        /*
-         * Create oscillator
-         */
-
-        const oscillator =
-            audioContext.createOscillator();
-
-
-        const gainNode =
-            audioContext.createGain();
-
-
-        /*
-         * Beep frequency
-         */
-
-        oscillator.type =
-            "sine";
-
-
-        oscillator.frequency.value =
-            1000;
-
-
-        /*
-         * Volume
-
-         */
-
-        gainNode.gain.setValueAtTime(
-            0.5,
-            audioContext.currentTime
-        );
-
-
-        /*
-         * Connect audio nodes
-         */
-
-        oscillator.connect(
-            gainNode
-        );
-
-
-        gainNode.connect(
-            audioContext.destination
-        );
-
-
-        /*
-         * Play beep
-
-         */
-
-        oscillator.start();
-
-
-        oscillator.stop(
-            audioContext.currentTime + 0.5
-        );
-
-
-        /*
-         * Update UI
-
-         */
-
-        document.getElementById(
-            "beep-status"
-        ).innerText =
-            "🔔 BEEP PLAYED";
-
-
-        document.getElementById(
-            "beep-status"
-        ).className =
-            "value beep";
-
-
-        document.getElementById(
-            "call-state"
-        ).innerText =
-            "Customer Disconnected";
-
-
-        document.getElementById(
-            "call-state"
-        ).className =
-            "value ended";
-
-
-        debugLog(
-            "🔔 CUSTOMER DISCONNECTED - BEEP PLAYED"
-        );
-
+        reviewContainer.innerHTML += `
+          <div class="p-5 rounded-lg border ${isMatch ? 'border-emerald-200 bg-emerald-50/20' : 'border-rose-200 bg-rose-50/20'}">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold text-slate-400">QUESTION ${idx + 1} (${q.domain})</span>
+              <span class="text-xs font-semibold px-2 py-0.5 rounded ${isMatch ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
+                ${isMatch ? 'Correct' : 'Incorrect'}
+              </span>
+            </div>
+            <p class="font-medium text-slate-800 mb-3 text-sm">${q.prompt}</p>
+            <div class="text-xs space-y-1 mb-3">
+              <div><strong class="text-slate-600">Your Answer:</strong> <span class="${isMatch ? 'text-emerald-700' : 'text-rose-700'} font-medium">${userLabels}</span></div>
+              <div><strong class="text-slate-600">Correct Answer:</strong> <span class="text-emerald-700 font-semibold">${correctLabels}</span></div>
+            </div>
+            <p class="text-xs text-slate-600 bg-white p-3 rounded border border-slate-200 leading-relaxed">
+              <strong>Explanation:</strong> ${q.explanation}
+            </p>
+          </div>
+        `;
+      });
     }
-
-    catch (error) {
-
-        document.getElementById(
-            "beep-status"
-        ).innerText =
-            "Beep Error";
-
-
-        debugLog(
-            "❌ Beep error: " +
-            error.message
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   POLL LAMBDA
-========================================================= */
-async function pollLambda() {
-
-if (!currentConversationId) {
-
-    debugLog(
-        "No active Conversation ID. Poll skipped."
-    );
-
-    return;
-
-}
-
-
-if (pollingInProgress) {
-
-    return;
-
-}
-
-
-pollingInProgress = true;
-
-
-try {
-
-    // =================================================
-    // BUILD URL
-    // =================================================
-
-    const pollingUrl =
-        LAMBDA_URL +
-        "?conversationId=" +
-        encodeURIComponent(
-            currentConversationId
-        );
-
-
-    debugLog(
-        "Polling Lambda..."
-    );
-
-
-    debugLog(
-        "Request URL: " +
-        pollingUrl
-    );
-
-
-    // =================================================
-    // CALL LAMBDA
-    // =================================================
-
-    const response =
-        await fetch(
-            pollingUrl,
-            {
-                method: "GET",
-                cache: "no-store"
-            }
-        );
-
-
-    // =================================================
-    // READ RESPONSE BODY FIRST
-    // =================================================
-
-    const responseText =
-        await response.text();
-
-
-    debugLog(
-        "Lambda HTTP Status: " +
-        response.status
-    );
-
-
-    debugLog(
-        "Lambda Response: " +
-        responseText
-    );
-
-
-    // =================================================
-    // HANDLE HTTP ERROR
-    // =================================================
-
-    if (!response.ok) {
-
-        throw new Error(
-            "HTTP " +
-            response.status +
-            ": " +
-            responseText
-        );
-
-    }
-
-
-    // =================================================
-    // PARSE JSON
-    // =================================================
-
-    let data;
-
-    try {
-
-        data =
-            JSON.parse(
-                responseText
-            );
-
-    }
-
-    catch (jsonError) {
-
-        throw new Error(
-            "Invalid JSON from Lambda: " +
-            responseText
-        );
-
-    }
-
-
-    // =================================================
-    // LAMBDA CONNECTED
-    // =================================================
-
-    document.getElementById(
-        "lambda-status"
-    ).innerText =
-        "Connected";
-
-
-    document.getElementById(
-        "lambda-status"
-    ).className =
-        "value active";
-
-
-    // =================================================
-    // DISPLAY LAMBDA ID
-    // =================================================
-
-    document.getElementById(
-        "lambda-conversation-id"
-    ).innerText =
-        data.conversationId ||
-        "-";
-
-
-    // =================================================
-    // NO EVENT
-    // =================================================
-
-    if (
-        !data.event
-    ) {
-
-        document.getElementById(
-            "comparison-status"
-        ).innerText =
-            "Waiting for customer disconnect";
-
-
-        debugLog(
-            "No disconnect event yet."
-        );
-
-
-        pollingInProgress =
-            false;
-
-        return;
-
-    }
-
-
-    // =================================================
-    // CUSTOMER DISCONNECTED
-    // =================================================
-
-    if (
-        data.event ===
-        "CUSTOMER_DISCONNECTED"
-    ) {
-
-        debugLog(
-            "🔔 Customer disconnect event received."
-        );
-
-
-        // ---------------------------------------------
-        // NORMALIZE IDS
-        // ---------------------------------------------
-
-        const genesysId =
-            String(
-                currentConversationId
-            )
-            .trim()
-            .toLowerCase();
-
-
-        const lambdaId =
-            String(
-                data.conversationId
-            )
-            .trim()
-            .toLowerCase();
-
-
-        debugLog(
-            "Genesys Conversation ID: " +
-            genesysId
-        );
-
-
-        debugLog(
-            "Lambda Conversation ID: " +
-            lambdaId
-        );
-
-
-        // ---------------------------------------------
-        // COMPARE
-        // ---------------------------------------------
-
-        if (
-            genesysId ===
-            lambdaId
-        ) {
-
-            document.getElementById(
-                "comparison-status"
-            ).innerText =
-                "✅ MATCH";
-
-
-            document.getElementById(
-                "comparison-status"
-            ).className =
-                "value active";
-
-
-            debugLog(
-                "✅ Conversation IDs MATCH."
-            );
-
-
-            // -----------------------------------------
-            // DUPLICATE PROTECTION
-            // -----------------------------------------
-
-            if (
-                lastBeepedConversationId ===
-                lambdaId
-            ) {
-
-                debugLog(
-                    "Beep already played for this conversation."
-                );
-
-
-                pollingInProgress =
-                    false;
-
-                return;
-
-            }
-
-
-            lastBeepedConversationId =
-                lambdaId;
-
-
-            // -----------------------------------------
-            // PLAY BEEP
-            // -----------------------------------------
-
-            await playDisconnectBeep();
-
-        }
-
-        else {
-
-            document.getElementById(
-                "comparison-status"
-            ).innerText =
-                "❌ MISMATCH";
-
-
-            document.getElementById(
-                "comparison-status"
-            ).className =
-                "value ended";
-
-
-            debugLog(
-                "❌ Conversation IDs DO NOT MATCH."
-            );
-
-        }
-
-    }
-
-}
-
-catch (error) {
-
-    document.getElementById(
-        "lambda-status"
-    ).innerText =
-        "Error";
-
-
-    document.getElementById(
-        "lambda-status"
-    ).className =
-        "value ended";
-
-
-    debugLog(
-        "❌ Lambda error: " +
-        error.message
-    );
-
-}
-
-
-pollingInProgress =
-    false;
-
-}
-
-
-/* =========================================================
-   START POLLING
-========================================================= */
-
-setInterval(
-    pollLambda,
-    1000
-);
-
-
-/* =========================================================
-   INITIALIZATION
-========================================================= */
-
-debugLog(
-    "Genesys Call Monitor initialized."
-);
-
-
-initializeConversation();
-
-
-debugLog(
-    "Waiting for customer disconnect event..."
-);
-
-</script>
-
+  </script>
 </body>
-
 </html>
